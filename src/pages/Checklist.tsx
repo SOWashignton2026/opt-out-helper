@@ -4,6 +4,8 @@ import { BROKERS, type Broker, type Category } from "../../shared/brokers";
 import { buildSearchUrl } from "../../shared/links";
 import { needsRecheck, parseSavedData, RECHECK_DAYS, type SavedData, type Status } from "../../shared/progress";
 import { US_STATES } from "../../shared/states";
+import { OptOutButton } from "../components/OptOutButton";
+import { StepList } from "../components/StepList";
 import { useSavedData } from "../lib/storage";
 
 const STATUS_OPTIONS: { value: Status; label: string }[] = [
@@ -305,15 +307,8 @@ function BrokerCard({
         {broker.requiresId ? <li>May ask for an ID</li> : null}
         {broker.requiresPhone ? <li>May ask for a phone number</li> : null}
       </ul>
-      <ol className="plain-steps">
-        {broker.steps.map((step) => (
-          <li key={step}>{step}</li>
-        ))}
-      </ol>
       <div className="row">
-        <a className="button" href={broker.optOutUrl} target="_blank" rel="noopener noreferrer">
-          Opt-out page
-        </a>
+        <OptOutButton broker={broker} />
         {broker.searchUrlTemplate ? (
           search ? (
             <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">
@@ -334,6 +329,7 @@ function BrokerCard({
           </a>
         ) : null}
       </div>
+      <StepList steps={broker.steps} />
       <div className="status-row">
         <label>
           Status for {broker.name}

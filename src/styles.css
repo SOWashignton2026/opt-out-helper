@@ -186,6 +186,13 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
   border-color: var(--line);
 }
 
+.button-primary {
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding: 12px 20px;
+  box-shadow: 0 2px 0 var(--accent-dark);
+}
+
 .button-danger {
   background: white;
   color: var(--danger);
@@ -276,6 +283,11 @@ textarea { min-height: 88px; resize: vertical; }
 
 .plain-steps { margin: 0; padding-left: 1.2rem; }
 .plain-steps li { margin: 4px 0; }
+.plain-steps a { font-weight: 700; }
+
+@media (max-width: 640px) {
+  .button-primary { width: 100%; }
+}
 
 .types { border: 1px solid var(--line); border-radius: 12px; display: grid; gap: 8px; }
 .choice { font-weight: 400; grid-template-columns: auto 1fr; align-items: start; }

@@ -110,7 +110,7 @@ PeopleConnect runs one free suppression center for Intelius, TruthFinder, Instan
 
 ## Project layout
 
-- `shared/brokers.ts` — the list of sites. Edit this file to add one.
+- `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the checklist shows a link.
 - `src/` — the React pages.
 - `worker/index.ts` — the `/api/letter` route.
 - `public/` — the icon and security headers.

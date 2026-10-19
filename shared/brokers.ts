@@ -8,6 +8,9 @@
  * - failed: we could not confirm a working removal page (see notes)
  *
  * Checked on 2026-10-19.
+ *
+ * In steps, link a form or page with [label](https://example.com) or
+ * [name@example.com](mailto:name@example.com). The checklist turns those into links.
  */
 export type Difficulty = "easy" | "medium" | "hard";
 export type Category = "people-search" | "calls-and-junk";
@@ -47,7 +50,7 @@ export const BROKERS: Broker[] = [
     steps: [
       "Search your name and open the listing that is you.",
       "Copy the address of that page from the browser bar.",
-      "Paste it into the opt-out form with an email you can open.",
+      "Paste it into the [opt-out form](https://www.spokeo.com/optout) with an email you can open.",
       "Click the confirmation link in Spokeo's email. Repeat for every listing.",
     ],
     difficulty: "easy",
@@ -66,10 +69,10 @@ export const BROKERS: Broker[] = [
     searchUrlTemplate: "https://www.whitepages.com/name/{nameSlug}/{citySlug}-{state}",
     phoneSearchUrl: "https://www.whitepages.com/reverse-phone",
     steps: [
-      "Open the consumer privacy page and find the opt-out tool.",
+      "Open the [consumer privacy page](https://www.whitepages.com/privacy/consumer-rights) and find the opt-out tool.",
       "Search your name, open your listing, and copy that page address.",
       "Paste the address into the tool. The automated tool asks for a phone number.",
-      "If you would rather not give a phone number, email privacyrequest@whitepages.com.",
+      "If you would rather not give a phone number, email [privacyrequest@whitepages.com](mailto:privacyrequest@whitepages.com).",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -86,7 +89,7 @@ export const BROKERS: Broker[] = [
     blurb: "People search with an opt-out search form.",
     optOutUrl: "https://www.beenverified.com/app/optout/search",
     steps: [
-      "Enter your first name, last name, and state on the opt-out search.",
+      "Enter your first name, last name, and state on the [opt-out search](https://www.beenverified.com/app/optout/search).",
       "Choose the profile that is you.",
       "Enter an email and finish the captcha.",
       "Open the email and click the verification link.",
@@ -106,7 +109,7 @@ export const BROKERS: Broker[] = [
     blurb: "PeopleConnect site. Shares a free suppression tool with TruthFinder, Instant Checkmate, and US Search.",
     optOutUrl: "https://www.intelius.com/opt-out",
     steps: [
-      "Open the opt-out page. It leads to the free PeopleConnect suppression center.",
+      "Open the [opt-out page](https://www.intelius.com/opt-out). It leads to the free [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
       "Confirm your email from the message they send.",
       "Add your legal name and switch your listing to suppressed.",
       "You do not need an account or a paid membership to do this.",
@@ -128,7 +131,7 @@ export const BROKERS: Broker[] = [
     steps: [
       "Search your name and state and open your profile.",
       "Copy the profile link.",
-      "Submit it on the opt-out form with an email you can open.",
+      "Submit it on the [opt-out form](https://www.peoplefinders.com/opt-out) with an email you can open.",
       "Finish the form in the confirmation email.",
     ],
     difficulty: "medium",
@@ -147,7 +150,7 @@ export const BROKERS: Broker[] = [
     searchUrlTemplate:
       "https://www.truepeoplesearch.com/results?name={firstSlug}+{lastSlug}&citystatezip={city},+{state}",
     steps: [
-      "Open the removal page and start the request with your email.",
+      "Open the [removal page](https://www.truepeoplesearch.com/removal) and start the request with your email.",
       "Search your name and city, then open your listing.",
       "Choose Remove this profile.",
       "Click the verification link in the email.",
@@ -167,7 +170,7 @@ export const BROKERS: Broker[] = [
     optOutUrl: "https://www.fastpeoplesearch.com/removal",
     searchUrlTemplate: "https://www.fastpeoplesearch.com/name/{firstLower}-{lastLower}_{cityLower}-{stateLower}",
     steps: [
-      "Open the removal page.",
+      "Open the [removal page](https://www.fastpeoplesearch.com/removal).",
       "Say you are the person in the record and enter your name and email.",
       "Use the link in the email to finish the form.",
       "Submit the request and keep the confirmation.",
@@ -186,9 +189,9 @@ export const BROKERS: Broker[] = [
     blurb: "The old opt-out form is gone. The domain shows a court-order notice.",
     optOutUrl: "https://radaris.com/",
     steps: [
-      "Open the site. As of October 2026 it shows a New Jersey court order, not a people-search opt-out form.",
+      "Open the [site](https://radaris.com/). As of October 2026 it shows a New Jersey court order, not a people-search opt-out form.",
       "If you only see that notice, there is no listing to remove here.",
-      "If a search form comes back later, copy your profile URL and look for a privacy or removal page.",
+      "If a search form comes back later, copy your profile URL and look for a privacy or removal page on the [site](https://radaris.com/).",
     ],
     difficulty: "hard",
     requiresEmail: false,
@@ -205,10 +208,10 @@ export const BROKERS: Broker[] = [
     blurb: "Profile site. Privacy requests can take longer and may ask you to prove who you are.",
     optOutUrl: "https://www.mylife.com/privacyrequest",
     steps: [
-      "Open the privacy request page, or start from the help page if that link moves.",
+      "Open the [privacy request page](https://www.mylife.com/privacyrequest), or start from the [help page](https://www.mylife.com/help) if that link moves.",
       "Ask them to delete your profile and not sell your information.",
       "Use an email you control. They may ask for an ID copy.",
-      "Their help page also lists membersupport@mylife.com.",
+      "Their [help page](https://www.mylife.com/help) also lists [membersupport@mylife.com](mailto:membersupport@mylife.com).",
     ],
     difficulty: "hard",
     requiresEmail: true,
@@ -225,7 +228,7 @@ export const BROKERS: Broker[] = [
     blurb: "PeopleConnect site. Use the same free suppression center as Intelius.",
     optOutUrl: "https://www.instantcheckmate.com/opt-out/",
     steps: [
-      "Open the opt-out page. It should send you to the PeopleConnect suppression center.",
+      "Open the [opt-out page](https://www.instantcheckmate.com/opt-out/). It should send you to the [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
       "Confirm your email.",
       "Suppress the listing for your name.",
       "Suppressing here also covers the other PeopleConnect people-search sites.",
@@ -245,7 +248,7 @@ export const BROKERS: Broker[] = [
     blurb: "PeopleConnect site. The opt-out page is their suppression center.",
     optOutUrl: "https://www.truthfinder.com/opt-out/",
     steps: [
-      "Open the opt-out page. It is the PeopleConnect suppression center.",
+      "Open the [opt-out page](https://www.truthfinder.com/opt-out/). It is the [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
       "Confirm your email.",
       "Suppress your background report so name searches do not show it.",
       "The same choice covers Intelius, Instant Checkmate, and US Search.",
@@ -264,10 +267,10 @@ export const BROKERS: Broker[] = [
     blurb: "PeopleConnect site. Use the shared suppression center.",
     optOutUrl: "https://www.ussearch.com/opt-out/",
     steps: [
-      "Open the opt-out page and continue to the suppression center.",
+      "Open the [opt-out page](https://www.ussearch.com/opt-out/) and continue to the [suppression center](https://suppression.peopleconnect.us/login).",
       "Confirm your email.",
       "Suppress your listing.",
-      "If this address fails, use https://suppression.peopleconnect.us/login directly.",
+      "If this address fails, use the [suppression center](https://suppression.peopleconnect.us/login) directly.",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -283,7 +286,7 @@ export const BROKERS: Broker[] = [
     blurb: "Search for your record, then confirm by email.",
     optOutUrl: "https://www.peoplelooker.com/svc/optout/search/optouts",
     steps: [
-      "Search for your record on the opt-out page.",
+      "Search for your record on the [opt-out page](https://www.peoplelooker.com/svc/optout/search/optouts).",
       "Select the record that is you.",
       "Confirm the email they send. They say the email is only used to verify the request.",
       "Check again in about a day.",
@@ -302,7 +305,7 @@ export const BROKERS: Broker[] = [
     blurb: "Their privacy policy names this removal link. The domain did not resolve when we checked.",
     optOutUrl: "https://nuwber.com/removal/link",
     steps: [
-      "Try the removal link. On October 19, 2026 the domain name did not resolve.",
+      "Try the [removal link](https://nuwber.com/removal/link). On October 19, 2026 the domain name did not resolve.",
       "If it loads, submit the profile URL with an email you can open.",
       "Click the confirmation email. If the site stays down, mark this Not listed and recheck later.",
     ],
@@ -321,9 +324,9 @@ export const BROKERS: Broker[] = [
     blurb: "Address and people maps. We could not open the site.",
     optOutUrl: "https://clustrmaps.com/bl/opt-out",
     steps: [
-      "Try the opt-out link from your own phone or home computer.",
+      "Try the [opt-out link](https://clustrmaps.com/bl/opt-out) from your own phone or home computer.",
       "When we checked, clustrmaps.com pointed at 127.0.0.1 and would not connect.",
-      "If it loads, find your profile, copy its URL, and submit the opt-out form.",
+      "If it loads, find your profile, copy its URL, and submit the [opt-out form](https://clustrmaps.com/bl/opt-out).",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -342,8 +345,8 @@ export const BROKERS: Broker[] = [
     searchUrlTemplate: "https://thatsthem.com/name/{nameSlug}/{citySlug}-{state}",
     steps: [
       "Search your name and copy the name, address, and phone shown on your listing.",
-      "Open the opt-out page and paste those details.",
-      "Submit the form. They say requests are often finished within 72 hours.",
+      "Open the [opt-out page](https://thatsthem.com/optout) and paste those details.",
+      "Submit the [form](https://thatsthem.com/optout). They say requests are often finished within 72 hours.",
     ],
     difficulty: "easy",
     requiresEmail: true,
@@ -360,9 +363,9 @@ export const BROKERS: Broker[] = [
     optOutUrl: "https://suppression.peopleconnect.us/login",
     steps: [
       "Addresses.com is part of PeopleConnect.",
-      "Open the suppression center and confirm your email.",
+      "Open the [suppression center](https://suppression.peopleconnect.us/login) and confirm your email.",
       "Suppress the listing for your name.",
-      "You can also email privacy@peopleconnect.us if the tool does not show your record.",
+      "You can also email [privacy@peopleconnect.us](mailto:privacy@peopleconnect.us) if the tool does not show your record.",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -379,10 +382,10 @@ export const BROKERS: Broker[] = [
     blurb: "Marketing-data company. The form removes you from marketing products, not every people-search site.",
     optOutUrl: "https://isapps.acxiom.com/optout/optout.aspx",
     steps: [
-      "Open the consumer opt-out form.",
+      "Open the [consumer opt-out form](https://isapps.acxiom.com/optout/optout.aspx).",
       "Enter your name and the mailing addresses you want removed.",
       "Add name variations if you have used more than one.",
-      "Instructions and a phone option (1-877-774-2094) are at https://www.acxiom.com/privacy/us/consumer-instructions/",
+      "Instructions and a phone option (1-877-774-2094) are on the [instructions page](https://www.acxiom.com/privacy/us/consumer-instructions/).",
     ],
     difficulty: "medium",
     requiresEmail: false,
@@ -398,8 +401,8 @@ export const BROKERS: Broker[] = [
     blurb: "People search. They say most opt-outs take 5 to 7 days.",
     optOutUrl: "https://checkpeople.com/opt-out",
     steps: [
-      "Open the opt-out page.",
-      "Follow the form to remove your record from search results.",
+      "Open the [opt-out page](https://checkpeople.com/opt-out).",
+      "Follow the [removal form](https://checkpeople.com/opt-out) to remove your record from search results.",
       "Watch your email for a confirmation.",
       "Check the site again after a week.",
     ],
@@ -417,7 +420,7 @@ export const BROKERS: Broker[] = [
     blurb: "Listed by removal guides. The domain did not resolve when we checked.",
     optOutUrl: "https://www.publicdatausa.com/optout",
     steps: [
-      "Try the opt-out link. On October 19, 2026 the domain name did not resolve.",
+      "Try the [opt-out link](https://www.publicdatausa.com/optout). On October 19, 2026 the domain name did not resolve.",
       "If it loads, search your name, select your records, and confirm the email.",
       "If it does not load, mark Not listed and recheck in 90 days.",
     ],
@@ -436,7 +439,7 @@ export const BROKERS: Broker[] = [
     blurb: "Record removal form. They also list phone 800-571-0614.",
     optOutUrl: "https://www.smartbackgroundchecks.com/optout",
     steps: [
-      "Open the opt-out page and accept the terms.",
+      "Open the [opt-out page](https://www.smartbackgroundchecks.com/optout) and accept the terms.",
       "Search your name, city, and state.",
       "Open your record and request removal.",
       "Click the verification link in the email.",
@@ -457,10 +460,10 @@ export const BROKERS: Broker[] = [
     searchUrlTemplate: "https://www.usphonebook.com/{firstLower}-{lastLower}",
     phoneSearchUrl: "https://www.usphonebook.com/{phone}",
     steps: [
-      "Open the removal page and enter your name and email.",
+      "Open the [removal page](https://www.usphonebook.com/removal) and enter your name and email.",
       "Confirm the email, then finish the address form it opens.",
       "Keep the message that says the request was processed.",
-      "To see if your number is listed, use the phone search link after you save a number.",
+      "To see if your number is listed, use the Phone lookup button, or open [USPhoneBook](https://www.usphonebook.com/).",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -478,9 +481,9 @@ export const BROKERS: Broker[] = [
     optOutUrl: "https://www.zabasearch.com/faq/",
     searchUrlTemplate: "https://www.zabasearch.com/people/{firstLower}-{lastLower}/",
     steps: [
-      "Open the FAQ and look for the question about blocking your information.",
-      "Use the opt-out form linked there if you see one.",
-      "ZabaSearch says it is powered by Intelius. If you do not see a form, also suppress your name on Intelius.",
+      "Open the [FAQ](https://www.zabasearch.com/faq/) and look for the question about blocking your information.",
+      "Use the opt-out form on that [FAQ page](https://www.zabasearch.com/faq/) if you see one.",
+      "ZabaSearch says it is powered by Intelius. If you do not see a form, also suppress your name on [Intelius](https://www.intelius.com/opt-out).",
       "We could not open a distinct form URL. Every address we tried returned the same block page.",
     ],
     difficulty: "medium",
@@ -498,7 +501,7 @@ export const BROKERS: Broker[] = [
     blurb: "People search with a removal page.",
     optOutUrl: "https://www.advancedbackgroundchecks.com/removal",
     steps: [
-      "Open the removal page.",
+      "Open the [removal page](https://www.advancedbackgroundchecks.com/removal).",
       "Search your name and open your record.",
       "Submit the removal and confirm the email.",
     ],
@@ -516,7 +519,7 @@ export const BROKERS: Broker[] = [
     blurb: "Genealogy-style people search with an opt-out page.",
     optOutUrl: "https://www.familytreenow.com/optout",
     steps: [
-      "Open the opt-out page.",
+      "Open the [opt-out page](https://www.familytreenow.com/optout).",
       "Search your name and select your record.",
       "Confirm the email they send.",
     ],
@@ -534,7 +537,7 @@ export const BROKERS: Broker[] = [
     blurb: "People search with a removal page.",
     optOutUrl: "https://www.cyberbackgroundchecks.com/removal",
     steps: [
-      "Open the removal page.",
+      "Open the [removal page](https://www.cyberbackgroundchecks.com/removal).",
       "Find your listing and request removal.",
       "Confirm the email.",
     ],
@@ -552,8 +555,8 @@ export const BROKERS: Broker[] = [
     blurb: "The old opt-out address now shows a domain-update notice.",
     optOutUrl: "https://www.peekyou.com/about/contact/optout/",
     steps: [
-      "Open the link. On October 19, 2026 it was a domain-update page, not a removal form.",
-      "If a form is there, submit your listing URL and confirm the email.",
+      "Open the [opt-out page](https://www.peekyou.com/about/contact/optout/). On October 19, 2026 it was a domain-update page, not a removal form.",
+      "If a [form](https://www.peekyou.com/about/contact/optout/) is there, submit your listing URL and confirm the email.",
       "If you only see the notice, mark Not listed.",
     ],
     difficulty: "hard",
@@ -571,7 +574,7 @@ export const BROKERS: Broker[] = [
     blurb: "Official registry that tells many sales callers to stop ringing you.",
     optOutUrl: "https://www.donotcall.gov/",
     steps: [
-      "Open the National Do Not Call Registry.",
+      "Open the [National Do Not Call Registry](https://www.donotcall.gov/).",
       "Register each phone number you want listed.",
       "Give it a few weeks. This does not stop scammers, charities, or surveys.",
     ],
@@ -589,7 +592,7 @@ export const BROKERS: Broker[] = [
     blurb: "Tell the Federal Trade Commission about scam or unwanted calls.",
     optOutUrl: "https://reportfraud.ftc.gov/",
     steps: [
-      "Open the FTC report form.",
+      "Open the [FTC report form](https://reportfraud.ftc.gov/).",
       "Describe the call or text. Include the number if you have it.",
       "This files a report. It does not delete a people-search listing.",
     ],
@@ -607,7 +610,7 @@ export const BROKERS: Broker[] = [
     blurb: "File a complaint with the Federal Communications Commission about robocalls or spoofed caller ID.",
     optOutUrl: "https://consumercomplaints.fcc.gov/",
     steps: [
-      "Open the FCC consumer complaint site.",
+      "Open the [FCC consumer complaint site](https://consumercomplaints.fcc.gov/).",
       "Choose a phone complaint and say it was a robocall, telemarketing call, or spoofed number.",
       "Our checker got a block page, but this is the FCC's complaint address.",
     ],
@@ -625,7 +628,7 @@ export const BROKERS: Broker[] = [
     blurb: "Official opt-out for firm offers of credit and insurance, run for the credit bureaus.",
     optOutUrl: "https://www.optoutprescreen.com/",
     steps: [
-      "Open OptOutPrescreen.",
+      "Open [OptOutPrescreen](https://www.optoutprescreen.com/).",
       "Pick the online opt-out (it lasts about five years) or the mail opt-out if you want it to last longer.",
       "This stops many prescreened credit and insurance offers. It does not remove people-search listings.",
     ],
@@ -644,7 +647,7 @@ export const BROKERS: Broker[] = [
     blurb: "Opt out of many kinds of commercial mail through the Data & Marketing Association.",
     optOutUrl: "https://www.dmachoice.org/",
     steps: [
-      "Open DMAchoice and register.",
+      "Open [DMAchoice](https://www.dmachoice.org/) and register.",
       "Choose the mail you do not want, such as credit offers and catalogs.",
       "The site may charge a small registration fee. Mail already in the pipeline can still arrive.",
     ],
@@ -662,7 +665,7 @@ export const BROKERS: Broker[] = [
     blurb: "Free scam labeling and blocking for T-Mobile customers.",
     optOutUrl: "https://www.t-mobile.com/benefits/scam-shield",
     steps: [
-      "Open T-Mobile's Scam Shield page.",
+      "Open [T-Mobile's Scam Shield page](https://www.t-mobile.com/benefits/scam-shield).",
       "Turn on Scam Block and Scam ID in the T-Life app or on your T-Mobile account.",
       "Scam Block can also stop a call you wanted. Check the blocked list if you miss a call.",
     ],
@@ -680,7 +683,7 @@ export const BROKERS: Broker[] = [
     blurb: "Free spam-call screening for Verizon customers.",
     optOutUrl: "https://www.verizon.com/solutions-and-services/call-filter/",
     steps: [
-      "Open Verizon's Call Filter page.",
+      "Open [Verizon's Call Filter page](https://www.verizon.com/solutions-and-services/call-filter/).",
       "Use the free Call Filter tools in the Verizon app. Some extra features cost money. You do not need the paid tier.",
       "Add numbers you trust to your contacts so they are less likely to be filtered.",
     ],
@@ -698,7 +701,7 @@ export const BROKERS: Broker[] = [
     blurb: "Free spam-call controls for AT&T wireless customers.",
     optOutUrl: "https://www.att.com/support/article/wireless/KM1147710/",
     steps: [
-      "Open AT&T's ActiveArmor help page.",
+      "Open [AT&T's ActiveArmor help page](https://www.att.com/support/article/wireless/KM1147710/).",
       "In the ActiveArmor app, review Calls and turn on the spam protection you want.",
       "You can block hidden numbers and report a caller from the same screen.",
     ],
@@ -719,6 +722,7 @@ export const BROKERS: Broker[] = [
       "Open Settings, then Apps, then Phone. On older iOS versions it is Settings, then Phone.",
       "Under Screen Unknown Callers, choose Silence.",
       "Save doctors, schools, and family in Contacts so those calls still ring.",
+      "Apple explains the menus on this [support page](https://support.apple.com/en-us/111106).",
     ],
     difficulty: "easy",
     requiresEmail: false,
@@ -737,7 +741,7 @@ export const BROKERS: Broker[] = [
       "Open the Phone app, then Settings, then Caller ID and spam.",
       "Turn on See caller ID and spam.",
       "Turn on Filter spam calls if you see it. Pixel phones may call this Call Screen instead.",
-      "The phone may send unknown numbers to Google to check them. Read Google's page before you turn it on.",
+      "The phone may send unknown numbers to Google to check them. Read [Google's page](https://support.google.com/phoneapp/answer/3459196?hl=en) before you turn it on.",
     ],
     difficulty: "easy",
     requiresEmail: false,

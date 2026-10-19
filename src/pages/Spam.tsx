@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { BROKERS, type Broker } from "../../shared/brokers";
+import { OptOutButton } from "../components/OptOutButton";
+import { StepList } from "../components/StepList";
 
 function Task({ broker }: { broker: Broker }) {
   return (
@@ -9,19 +11,13 @@ function Task({ broker }: { broker: Broker }) {
         {broker.verification === "failed" ? <span className="flag">Link not verified</span> : null}
       </header>
       <p>{broker.blurb}</p>
-      <ol className="plain-steps">
-        {broker.steps.map((step) => (
-          <li key={step}>{step}</li>
-        ))}
-      </ol>
       <div className="row">
-        <a className="button" href={broker.optOutUrl} target="_blank" rel="noopener noreferrer">
-          Open official page
-        </a>
+        <OptOutButton broker={broker} />
         <Link className="button button-quiet" to={`/checklist#${broker.id}`}>
           Track this on the checklist
         </Link>
       </div>
+      <StepList steps={broker.steps} />
     </article>
   );
 }

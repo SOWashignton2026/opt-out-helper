@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { BROKERS, type Broker } from "../shared/brokers";
 import { buildSearchUrl } from "../shared/links";
 import { needsRecheck, parseSavedData, type Profile } from "../shared/progress";
+import { parseStep, stepHrefs } from "../shared/steps";
 
 const REQUIRED: (keyof Broker)[] = [
   "id",
@@ -82,6 +83,28 @@ describe("broker list", () => {
       "radaris",
       "zabasearch",
     ]);
+  });
+
+  it("links every named form or page, including Spokeo's opt-out form", () => {
+    const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
+    const spokeoStep = spokeo?.steps.find((step) => step.includes("opt-out form")) ?? "";
+    expect(parseStep(spokeoStep)).toEqual([
+      { kind: "text", text: "Paste it into the " },
+      { kind: "link", text: "opt-out form", href: "https://www.spokeo.com/optout" },
+      { kind: "text", text: " with an email you can open." },
+    ]);
+
+    for (const broker of BROKERS) {
+      const hrefs = broker.steps.flatMap(stepHrefs);
+      expect(hrefs, broker.id).toContain(broker.optOutUrl);
+      for (const step of broker.steps) {
+        const leftover = step.replace(/\[[^\]]+\]\((?:https?:\/\/|mailto:)[^)]+\)/g, "");
+        expect(leftover, `${broker.id}: ${step}`).not.toMatch(/https?:\/\/|mailto:/);
+        for (const href of stepHrefs(step)) {
+          expect(href.startsWith("https://") || href.startsWith("mailto:")).toBe(true);
+        }
+      }
+    }
   });
 
   it("builds a Spokeo search link and phone lookups", () => {
