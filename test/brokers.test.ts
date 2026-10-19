@@ -15,6 +15,7 @@ const REQUIRED: (keyof Broker)[] = [
   "requiresEmail",
   "requiresId",
   "requiresPhone",
+  "letterRecommended",
   "lastVerified",
   "verification",
 ];
@@ -62,6 +63,7 @@ describe("broker list", () => {
       expect(typeof broker.requiresEmail).toBe("boolean");
       expect(typeof broker.requiresId).toBe("boolean");
       expect(typeof broker.requiresPhone).toBe("boolean");
+      expect(typeof broker.letterRecommended).toBe("boolean");
       if (broker.verification === "failed") {
         expect(broker.lastVerified).toBeNull();
       } else {
@@ -104,6 +106,16 @@ describe("broker list", () => {
           expect(href.startsWith("https://") || href.startsWith("mailto:")).toBe(true);
         }
       }
+    }
+  });
+
+  it("recommends a letter only when a written request is the route", () => {
+    const flagged = BROKERS.filter((broker) => broker.letterRecommended).map((broker) => broker.id);
+    expect(flagged).toEqual(["mylife", "acxiom"]);
+    const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
+    expect(spokeo?.letterRecommended).toBe(false);
+    for (const broker of BROKERS) {
+      if (broker.category === "calls-and-junk") expect(broker.letterRecommended).toBe(false);
     }
   });
 

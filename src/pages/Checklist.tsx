@@ -254,8 +254,8 @@ export function ChecklistPage() {
       </div>
 
       <p className="hint">
-        Showing {visible.length} of {total}.{" "}
-        <Link to="/letters">Write a letter</Link> for a people-search site.
+        Showing {visible.length} of {total}. Write a letter only shows up when that site needs a
+        written request.
       </p>
 
       <div className="stack">
@@ -309,6 +309,11 @@ function BrokerCard({
       </ul>
       <div className="row">
         <OptOutButton broker={broker} />
+        {broker.letterRecommended ? (
+          <Link className="button button-quiet" to={`/letters?broker=${broker.id}`}>
+            Write a letter
+          </Link>
+        ) : null}
         {broker.searchUrlTemplate ? (
           search ? (
             <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">

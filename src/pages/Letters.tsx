@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { brokersByCategory } from "../../shared/brokers";
 import { validateLetterRequest, type LetterType } from "../../shared/letter";
 import { BROKERS } from "../../shared/brokers";
@@ -34,15 +35,43 @@ type ApiBody = {
 
 export function LettersPage() {
   const sites = useMemo(() => brokersByCategory("people-search"), []);
+  const recommended = useMemo(() => sites.filter((site) => site.letterRecommended), [sites]);
+  const [params] = useSearchParams();
+  const requestedId = params.get("broker") ?? "";
   const { data, updateProfile } = useSavedData();
-  const [brokerId, setBrokerId] = useState(sites[0]?.id ?? "");
+  const [showAll, setShowAll] = useState(() => {
+    const requested = sites.find((site) => site.id === requestedId);
+    return Boolean(requested && !requested.letterRecommended);
+  });
+  const [brokerId, setBrokerId] = useState(() => {
+    if (sites.some((site) => site.id === requestedId)) return requestedId;
+    return recommended[0]?.id ?? sites[0]?.id ?? "";
+  });
   const [letterType, setLetterType] = useState<LetterType>("general");
   const [notes, setNotes] = useState("");
   const [letter, setLetter] = useState("");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
 
-  const broker = sites.find((item) => item.id === brokerId) ?? sites[0];
+  const listed = showAll ? sites : recommended;
+  const broker = sites.find((item) => item.id === brokerId) ?? listed[0];
+
+  useEffect(() => {
+    const requested = sites.find((site) => site.id === requestedId);
+    if (!requested) return;
+    setBrokerId(requested.id);
+    if (!requested.letterRecommended) setShowAll(true);
+  }, [requestedId, sites]);
+
+  function toggleShowAll() {
+    setShowAll((current) => {
+      const next = !current;
+      if (!next && !recommended.some((site) => site.id === brokerId)) {
+        setBrokerId(recommended[0]?.id ?? "");
+      }
+      return next;
+    });
+  }
 
   function draftFromTemplate(): string {
     if (!broker) return "";
@@ -143,6 +172,10 @@ export function LettersPage() {
       <header className="page-intro">
         <h1>Removal letters</h1>
         <p>
+          Most sites just need the opt-out form. Use a letter when a site asks for an email request,
+          ignores you, or when you want a formal state-privacy deletion request.
+        </p>
+        <p>
           Pick a site and a letter type. Write with AI uses today’s limit of 10 letters. The
           template works with no AI, including after the limit is used up.
         </p>
@@ -152,13 +185,17 @@ export function LettersPage() {
         <div className="form-grid">
           <label className="span-2">
             Site
-            <select value={brokerId} onChange={(event) => setBrokerId(event.target.value)}>
-              {sites.map((site) => (
+            <select value={broker?.id ?? ""} onChange={(event) => setBrokerId(event.target.value)}>
+              {listed.map((site) => (
                 <option key={site.id} value={site.id}>
                   {site.name}
                 </option>
               ))}
             </select>
+          </label>
+          <label className="span-2 show-all">
+            <input type="checkbox" checked={showAll} onChange={toggleShowAll} />
+            Show all sites
           </label>
           <label>
             First name
