@@ -112,12 +112,36 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
 .hint { color: var(--muted); margin: 0; }
 .optional { color: var(--muted); font-weight: 400; }
 
-.hero, .panel, .card {
+.hero, .panel, .card, .about {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 18px;
   box-shadow: var(--shadow);
+}
+
+.about {
+  background: var(--accent-soft);
+  border-color: #cfe6df;
+  padding: 14px 16px;
+}
+
+.about h2 {
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.about p {
+  margin: 0 0 8px;
+  max-width: 68ch;
+}
+
+.social { gap: 8px; }
+
+.social-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
 }
 
 .steps {
