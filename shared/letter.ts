@@ -1,4 +1,5 @@
 import type { Broker } from "./brokers";
+import { privacyLawFor } from "./privacy-laws";
 import { isStateCode } from "./states";
 
 export type LetterType = "general" | "ccpa" | "followup";
@@ -125,15 +126,28 @@ export function buildLetterPrompt(input: LetterInput, brokerName: string): strin
   lines.push(
     "Write the letter they can paste into that site's form or email. Use only the facts above.",
   );
+  if (input.letterType === "ccpa") {
+    const law = privacyLawFor(input.state);
+    lines.push(
+      law
+        ? `You may cite only this law: ${law.name}. Do not name any other statute.`
+        : "Do not name any statute, act, or privacy law. This state has no general consumer privacy law with a deletion right on the maintained list. Ask politely for deletion.",
+    );
+  } else {
+    lines.push(
+      "Do not name any statute, act, code section, or privacy law. Do not imply that this state requires deletion.",
+    );
+  }
   return lines.join("\n");
 }
 
 export const LETTER_SYSTEM_PROMPT = [
   "You write short, polite removal-request letters for a person asking a data broker to take down their listing.",
   "Return plain text only. No markdown, no JSON, and no commentary before or after the letter.",
-  "Do not invent addresses, account numbers, dates of birth, or statute names you were not given.",
-  "If the letter type is ccpa and the state is CA, you may mention the California Consumer Privacy Act (CCPA/CPRA).",
-  "For any other state, ask them to delete the information under that state's consumer privacy rights. Do not name a specific statute.",
+  "Do not invent addresses, account numbers, dates of birth, or laws.",
+  "Do not name any statute, act, code section, or privacy law unless the instructions give you exactly one law to cite.",
+  "If no law is given, do not imply that the person's state requires deletion.",
+  "General removal letters and follow-up letters never cite a law.",
   "If the letter type is followup, say they already asked and have not received a confirmation.",
   "Keep the letter under 350 words.",
 ].join(" ");

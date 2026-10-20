@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { BROKERS } from "../shared/brokers";
-import { buildLetterPrompt, validateLetterRequest } from "../shared/letter";
+import { buildLetterPrompt, LETTER_SYSTEM_PROMPT, validateLetterRequest } from "../shared/letter";
+import { privacyLawFor, PRIVACY_LAWS_CHECKED } from "../shared/privacy-laws";
 import { fetchWith5xxRetry } from "../shared/retry";
 import { buildTemplateLetter } from "../shared/templates";
 
@@ -56,6 +57,8 @@ describe("letter validation", () => {
   });
 });
 
+const LAW_CITE = /CCPA|CPRA|statute|consumer privacy rights|My Health My Data|VCDPA|privacy act|privacy law/i;
+
 describe("template fallback", () => {
   it("names the person and the site, and mentions California only for a CA privacy letter", () => {
     const base = validateLetterRequest(valid, BROKERS);
@@ -69,10 +72,57 @@ describe("template fallback", () => {
       { ...base.value, letterType: "ccpa", state: "CA", city: "Oakland" },
       "Spokeo",
     );
-    expect(california).toContain("California Consumer Privacy Act");
+    expect(california).toContain("California Consumer Privacy Act (CCPA/CPRA)");
 
     const followup = buildTemplateLetter({ ...base.value, letterType: "followup" }, "Spokeo");
     expect(followup.toLowerCase()).toContain("already asked");
+    expect(followup).not.toMatch(LAW_CITE);
+  });
+
+  it("does not cite a law for a Washington general, follow-up, or state-privacy letter", () => {
+    const base = validateLetterRequest(
+      { ...valid, city: "Seattle", state: "WA", letterType: "general" },
+      BROKERS,
+    );
+    if (!base.ok) throw new Error("expected valid");
+    expect(privacyLawFor("WA")).toBeUndefined();
+
+    const general = buildTemplateLetter(base.value, "Spokeo");
+    const followup = buildTemplateLetter({ ...base.value, letterType: "followup" }, "Spokeo");
+    const polite = buildTemplateLetter({ ...base.value, letterType: "ccpa" }, "Spokeo");
+    for (const letter of [general, followup, polite]) {
+      expect(letter).not.toMatch(LAW_CITE);
+      expect(letter).not.toContain("Washington's");
+    }
+    expect(polite).toContain("Please delete the personal information");
+
+    const generalPrompt = buildLetterPrompt(base.value, "Spokeo");
+    const followupPrompt = buildLetterPrompt({ ...base.value, letterType: "followup" }, "Spokeo");
+    const politePrompt = buildLetterPrompt({ ...base.value, letterType: "ccpa" }, "Spokeo");
+    expect(generalPrompt).toContain("Do not name any statute");
+    expect(followupPrompt).toContain("Do not name any statute");
+    expect(politePrompt).toContain("Do not name any statute");
+    expect(politePrompt).not.toContain("CCPA");
+    expect(LETTER_SYSTEM_PROMPT).toContain("never cite a law");
+    expect(LETTER_SYSTEM_PROMPT).not.toContain("consumer privacy rights");
+  });
+
+  it("cites the CCPA for a California state-privacy letter and no other law", () => {
+    const base = validateLetterRequest(
+      { ...valid, city: "Oakland", state: "CA", letterType: "ccpa" },
+      BROKERS,
+    );
+    if (!base.ok) throw new Error("expected valid");
+    expect(privacyLawFor("CA")?.name).toContain("CCPA/CPRA");
+    expect(PRIVACY_LAWS_CHECKED).toBe("2026-10-20");
+
+    const letter = buildTemplateLetter(base.value, "Spokeo");
+    expect(letter).toContain("California Consumer Privacy Act (CCPA/CPRA)");
+    expect(letter).not.toContain("Virginia");
+
+    const prompt = buildLetterPrompt(base.value, "Spokeo");
+    expect(prompt).toContain("You may cite only this law: California Consumer Privacy Act (CCPA/CPRA).");
+    expect(prompt).not.toContain("Washington");
   });
 });
 

@@ -1,5 +1,6 @@
-import { stateName } from "./states";
 import type { LetterInput } from "./letter";
+import { privacyLawFor } from "./privacy-laws";
+import { stateName } from "./states";
 
 function contactLines(input: LetterInput): string[] {
   const lines = [`${input.firstName} ${input.lastName}`, `${input.city}, ${input.state}`];
@@ -42,14 +43,12 @@ export function buildTemplateLetter(input: LetterInput, brokerName: string, now 
       .trim();
   }
 
-  const legal =
-    input.letterType === "ccpa" && input.state === "CA"
-      ? "I am a California resident. Under the California Consumer Privacy Act (CCPA/CPRA), I ask you to delete the personal information you keep about me and to stop selling or sharing it."
-      : `I live in ${fullState}. Please treat this as a request to delete my personal information under my state's consumer privacy rights, and to stop selling or sharing it.`;
-
+  const law = input.letterType === "ccpa" ? privacyLawFor(input.state) : undefined;
   const opening =
     input.letterType === "ccpa"
-      ? legal
+      ? law
+        ? `I am a ${fullState} resident. Under the ${law.name}, I ask you to delete the personal information you keep about me and to stop selling or sharing it.`
+        : `I live in ${fullState}. Please delete the personal information you keep about me and stop selling or sharing it.`
       : `Please remove my personal information from ${brokerName}. Take down the public listing for my name, and delete the address, phone number, and email associated with it from the products you control.`;
 
   const second =

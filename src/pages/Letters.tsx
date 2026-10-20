@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { brokersByCategory } from "../../shared/brokers";
 import { validateLetterRequest, type LetterType } from "../../shared/letter";
 import { BROKERS } from "../../shared/brokers";
+import { privacyLawFor } from "../../shared/privacy-laws";
 import { buildTemplateLetter } from "../../shared/templates";
 import { US_STATES } from "../../shared/states";
 import { useSavedData } from "../lib/storage";
@@ -16,7 +17,7 @@ const TYPES: { value: LetterType; label: string; help: string }[] = [
   {
     value: "ccpa",
     label: "State privacy deletion request",
-    help: "Asks them to delete your information. Names the California law only if you live in California.",
+    help: "Asks them to delete your information. Names a state privacy law only when that state gives a deletion right.",
   },
   {
     value: "followup",
@@ -274,6 +275,11 @@ export function LettersPage() {
             </label>
           ))}
         </fieldset>
+        {letterType === "ccpa" && data.profile.state && !privacyLawFor(data.profile.state) ? (
+          <p className="hint" role="note">
+            Your state may not have a privacy law that requires deletion; this letter asks politely instead.
+          </p>
+        ) : null}
 
         <label>
           Extra notes <span className="optional">optional, 400 characters</span>
