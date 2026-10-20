@@ -1,8 +1,8 @@
-# Opt Out Helper
+# Privacy Defender
 
 A free website that helps you remove yourself from people-search sites and cut down spam calls and junk mail.
 
-You work through a checklist. You can write a removal letter with an AI helper, or copy a plain template if the helper is off. Your name and progress stay in your browser. This project does not store them in a database.
+You work through the Privacy Tool. You can write a removal letter with an AI helper, or copy a plain template if the helper is off. Your name and progress stay in your browser. This project does not store them in a database.
 
 This is not legal advice, and it is not affiliated with any site in the list.
 
@@ -71,7 +71,7 @@ npm run build
 npx wrangler deploy
 ```
 
-The Worker name is `opt-out-helper`. Preview URLs are turned off in `wrangler.jsonc`.
+The Worker name is `privacy-defender`. Preview URLs are turned off in `wrangler.jsonc`.
 
 ## Secrets and bindings
 
@@ -110,11 +110,11 @@ PeopleConnect runs one free suppression center for Intelius, TruthFinder, Instan
 
 ## Project layout
 
-- `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the checklist shows a link.
+- `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the Privacy Tool shows a link.
 - `src/` — the React pages.
 - `worker/index.ts` — the `/api/letter` route.
 - `public/` — the icon and security headers.
 
 ## Privacy in one paragraph
 
-The checklist lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. There are no ads and no third-party trackers.
+The Privacy Tool lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. There are no ads and no third-party trackers.

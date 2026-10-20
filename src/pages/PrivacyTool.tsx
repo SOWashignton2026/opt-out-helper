@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BROKERS, type Broker, type Category } from "../../shared/brokers";
 import { buildSearchUrl } from "../../shared/links";
-import { needsRecheck, parseSavedData, RECHECK_DAYS, type SavedData, type Status } from "../../shared/progress";
+import { needsRecheck, RECHECK_DAYS, type SavedData, type Status } from "../../shared/progress";
 import { US_STATES } from "../../shared/states";
 import { OptOutButton } from "../components/OptOutButton";
 import { StepList } from "../components/StepList";
@@ -31,25 +31,16 @@ function recheckLabel(iso: string): string {
   return `Updated ${formatWhen(iso)}. Recheck after ${formatWhen(due)}.`;
 }
 
-function download(data: SavedData) {
-  const file = {
-    app: "opt-out-helper",
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    profile: data.profile,
-    progress: data.progress,
-  };
-  const blob = new Blob([JSON.stringify(file, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "opt-out-helper.json";
-  link.click();
-  URL.revokeObjectURL(url);
+function joinedName(first: string, last: string): string {
+  return [first.trim(), last.trim()].filter(Boolean).join(" ");
 }
 
-export function ChecklistPage() {
-  const { data, updateProfile, setStatus, replaceAll, clearAll, handled, total } = useSavedData();
+function cityAndState(city: string, state: string): string {
+  return [city.trim(), state.trim()].filter(Boolean).join(", ");
+}
+
+export function PrivacyToolPage() {
+  const { data, updateProfile, setStatus, clearAll, handled, total } = useSavedData();
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
@@ -71,26 +62,23 @@ export function ChecklistPage() {
   }, [data.progress, filter, query]);
 
   const percent = total === 0 ? 0 : Math.round((handled / total) * 100);
+  const nameCopy = joinedName(data.profile.firstName, data.profile.lastName);
+  const placeCopy = cityAndState(data.profile.city, data.profile.state);
+  const emailCopy = data.profile.email.trim();
 
-  async function onImport(file: File | undefined) {
-    if (!file) return;
+  async function copyText(value: string) {
+    if (!value) return;
     try {
-      const text = await file.text();
-      const parsed = parseSavedData(JSON.parse(text));
-      if (!parsed) {
-        setMessage("That file is not an Opt Out Helper backup.");
-        return;
-      }
-      replaceAll(parsed);
-      setMessage("Backup imported. It replaced the checklist saved in this browser.");
+      await navigator.clipboard.writeText(value);
+      setMessage("Copied.");
     } catch {
-      setMessage("Could not read that file.");
+      setMessage("Select the text and copy it.");
     }
   }
 
   function onClear() {
     const ok = window.confirm(
-      "Erase your name and checklist from this browser? This does not reset today’s AI letter count.",
+      "Erase your name and progress from this browser? This does not reset today’s AI letter count.",
     );
     if (!ok) return;
     clearAll();
@@ -100,76 +88,12 @@ export function ChecklistPage() {
   return (
     <div className="stack">
       <header className="page-intro">
-        <h1>Checklist</h1>
+        <h1>Privacy Tool</h1>
         <p>
           Add your name to build search links. Then mark each site as you go. A reminder shows up
           here 90 days after you last updated a row.
         </p>
       </header>
-
-      <section className="panel" aria-labelledby="find-title">
-        <h2 id="find-title">Find me</h2>
-        <p className="hint">Saved only in this browser. Used for search links and letters.</p>
-        <div className="form-grid">
-          <label>
-            First name
-            <input
-              autoComplete="given-name"
-              value={data.profile.firstName}
-              onChange={(event) => updateProfile({ firstName: event.target.value })}
-            />
-          </label>
-          <label>
-            Last name
-            <input
-              autoComplete="family-name"
-              value={data.profile.lastName}
-              onChange={(event) => updateProfile({ lastName: event.target.value })}
-            />
-          </label>
-          <label>
-            City
-            <input
-              autoComplete="address-level2"
-              value={data.profile.city}
-              onChange={(event) => updateProfile({ city: event.target.value })}
-            />
-          </label>
-          <label>
-            State
-            <select
-              autoComplete="address-level1"
-              value={data.profile.state}
-              onChange={(event) => updateProfile({ state: event.target.value })}
-            >
-              <option value="">Select</option>
-              {US_STATES.map((state) => (
-                <option key={state.code} value={state.code}>
-                  {state.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Email <span className="optional">optional</span>
-            <input
-              type="email"
-              autoComplete="email"
-              value={data.profile.email}
-              onChange={(event) => updateProfile({ email: event.target.value })}
-            />
-          </label>
-          <label>
-            Phone <span className="optional">optional</span>
-            <input
-              type="tel"
-              autoComplete="tel"
-              value={data.profile.phone}
-              onChange={(event) => updateProfile({ phone: event.target.value })}
-            />
-          </label>
-        </div>
-      </section>
 
       <section className="panel" aria-labelledby="progress-title">
         <div className="split">
@@ -184,7 +108,7 @@ export function ChecklistPage() {
           aria-valuemin={0}
           aria-valuemax={total}
           aria-valuenow={handled}
-          aria-label="Checklist progress"
+          aria-label="Privacy Tool progress"
         >
           <span style={{ width: `${percent}%` }} />
         </div>
@@ -193,24 +117,8 @@ export function ChecklistPage() {
             Recheck {due.length} {due.length === 1 ? "item" : "items"} you updated at least 90 days
             ago: {due.map((item) => item.name).join(", ")}.
           </p>
-        ) : (
-          <p className="hint">Rows you finish will ask for a recheck 90 days later. No emails.</p>
-        )}
+        ) : null}
         <div className="row">
-          <button type="button" className="button button-quiet" onClick={() => download(data)}>
-            Export progress
-          </button>
-          <label className="button button-quiet file-button">
-            Import progress
-            <input
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                void onImport(event.target.files?.[0]);
-                event.target.value = "";
-              }}
-            />
-          </label>
           <button type="button" className="button button-danger" onClick={onClear}>
             Clear all my data
           </button>
@@ -220,6 +128,111 @@ export function ChecklistPage() {
             {message}
           </p>
         ) : null}
+      </section>
+
+      <section className="panel" aria-labelledby="find-title">
+        <h2 id="find-title">Find me</h2>
+        <p className="hint">
+          Saved only in this browser. Used to build your search links and letters. Websites can't
+          auto-fill other sites' forms, so use the Copy buttons.
+        </p>
+        <div className="form-grid">
+          <label>
+            First name
+            <input
+              name="given-name"
+              autoComplete="given-name"
+              value={data.profile.firstName}
+              onChange={(event) => updateProfile({ firstName: event.target.value })}
+              onBlur={(event) => updateProfile({ firstName: event.target.value })}
+            />
+          </label>
+          <label>
+            Last name
+            <input
+              name="family-name"
+              autoComplete="family-name"
+              value={data.profile.lastName}
+              onChange={(event) => updateProfile({ lastName: event.target.value })}
+              onBlur={(event) => updateProfile({ lastName: event.target.value })}
+            />
+          </label>
+          <label>
+            City
+            <input
+              name="address-level2"
+              autoComplete="address-level2"
+              value={data.profile.city}
+              onChange={(event) => updateProfile({ city: event.target.value })}
+              onBlur={(event) => updateProfile({ city: event.target.value })}
+            />
+          </label>
+          <label>
+            State
+            <select
+              name="address-level1"
+              autoComplete="address-level1"
+              value={data.profile.state}
+              onChange={(event) => updateProfile({ state: event.target.value })}
+              onBlur={(event) => updateProfile({ state: event.target.value })}
+            >
+              <option value="">Select</option>
+              {US_STATES.map((state) => (
+                <option key={state.code} value={state.code}>
+                  {state.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Email <span className="optional">optional</span>
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={data.profile.email}
+              onChange={(event) => updateProfile({ email: event.target.value })}
+              onBlur={(event) => updateProfile({ email: event.target.value })}
+            />
+          </label>
+          <label>
+            Phone <span className="optional">optional</span>
+            <input
+              name="tel"
+              type="tel"
+              autoComplete="tel"
+              value={data.profile.phone}
+              onChange={(event) => updateProfile({ phone: event.target.value })}
+              onBlur={(event) => updateProfile({ phone: event.target.value })}
+            />
+          </label>
+        </div>
+        <div className="row">
+          <button
+            type="button"
+            className="button button-quiet copy-button"
+            onClick={() => void copyText(nameCopy)}
+            disabled={!nameCopy}
+          >
+            Copy name
+          </button>
+          <button
+            type="button"
+            className="button button-quiet copy-button"
+            onClick={() => void copyText(placeCopy)}
+            disabled={!placeCopy}
+          >
+            Copy city and state
+          </button>
+          <button
+            type="button"
+            className="button button-quiet copy-button"
+            onClick={() => void copyText(emailCopy)}
+            disabled={!emailCopy}
+          >
+            Copy email
+          </button>
+        </div>
       </section>
 
       <div className="toolbar">
@@ -236,7 +249,7 @@ export function ChecklistPage() {
             [
               ["all", "All"],
               ["people-search", "People-search"],
-              ["calls-and-junk", "Calls & junk"],
+              ["calls-and-junk", "Spam & mail"],
               ["recheck", "Recheck due"],
             ] as const
           ).map(([value, label]) => (

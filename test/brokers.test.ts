@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BROKERS, type Broker } from "../shared/brokers";
+import { BROKERS, RESOURCE_IDS, SPAM_CALL_IDS, type Broker } from "../shared/brokers";
 import { buildSearchUrl } from "../shared/links";
 import { needsRecheck, parseSavedData, type Profile } from "../shared/progress";
 import { parseStep, stepHrefs } from "../shared/steps";
@@ -117,6 +117,17 @@ describe("broker list", () => {
     for (const broker of BROKERS) {
       if (broker.category === "calls-and-junk") expect(broker.letterRecommended).toBe(false);
     }
+  });
+
+  it("splits call and mail tasks between spam calls and additional resources", () => {
+    const calls = BROKERS.filter((broker) => broker.category === "calls-and-junk").map((broker) => broker.id);
+    const listed = [...SPAM_CALL_IDS, ...RESOURCE_IDS];
+    expect(listed.slice().sort()).toEqual(calls.slice().sort());
+    expect(new Set(listed).size).toBe(listed.length);
+    expect(SPAM_CALL_IDS).toEqual(["do-not-call", "ftc-unwanted-calls", "fcc-complaint"]);
+    expect(RESOURCE_IDS).toContain("dmachoice");
+    expect(RESOURCE_IDS).toContain("optoutprescreen");
+    expect(RESOURCE_IDS).toContain("iphone-silence-unknown");
   });
 
   it("builds a Spokeo search link and phone lookups", () => {

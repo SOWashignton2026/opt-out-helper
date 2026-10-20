@@ -26,7 +26,7 @@ export function FaqPage() {
         <p>
           Brokers buy fresh copies of the same public records. A removal is often a flag on their
           copy, not a change to the courthouse or county file. Check again about every 90 days. The
-          checklist will remind you inside the app. It will not email you.
+          Privacy Tool will remind you inside the app. It will not email you.
         </p>
       </section>
 

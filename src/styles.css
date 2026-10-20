@@ -187,7 +187,7 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
 .split, .card-head, .status-row { justify-content: space-between; }
 .status-row { align-items: end; }
 
-.button, button, .file-button {
+.button, button {
   appearance: none;
   border: 1px solid transparent;
   background: var(--accent);
@@ -225,9 +225,13 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
 
 button:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.file-button input { display: none; }
-
 .text-link { font-weight: 700; }
+
+.copy-button {
+  min-height: 36px;
+  padding: 6px 12px;
+  font-size: 0.9rem;
+}
 
 .form-grid {
   display: grid;

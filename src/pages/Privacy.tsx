@@ -7,10 +7,9 @@ export function PrivacyPage() {
       <section>
         <h2>What stays in your browser</h2>
         <p>
-          Your name, city, state, email, phone, and checklist progress are saved in localStorage on
-          this device. We do not have an account system or a database of visitors. Export makes a
-          JSON file you download. Import reads a file you pick. Clear all my data erases that saved
-          information from this browser.
+          Your name, city, state, email, phone, and Privacy Tool progress are saved in localStorage
+          on this device. We do not have an account system or a database of visitors. Clear all my
+          data erases that saved information from this browser.
         </p>
       </section>
 
@@ -37,7 +36,7 @@ export function PrivacyPage() {
           named <code>ooh_vid</code>. The server hashes that id and stores only the hash, the UTC
           date, and a count in Cloudflare KV. If your browser does not send the cookie, the count
           uses a hash of your IP address instead. The cookie is not your name. Clearing the
-          checklist does not reset the count.
+          Privacy Tool does not reset the count.
         </p>
       </section>
 
@@ -46,7 +45,7 @@ export function PrivacyPage() {
         <ul>
           <li>No ads and no third-party analytics.</li>
           <li>No sale of your information. We do not have it on a server to sell.</li>
-          <li>We are not affiliated with the sites in the checklist.</li>
+          <li>We are not affiliated with the sites in the Privacy Tool.</li>
         </ul>
       </section>
     </div>

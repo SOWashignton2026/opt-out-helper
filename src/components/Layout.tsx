@@ -1,16 +1,19 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { SavedDataProvider } from "../lib/storage";
 
 const LINKS = [
   { to: "/", label: "Home", end: true },
-  { to: "/checklist", label: "Checklist", end: false },
+  { to: "/privacy-tool", label: "Privacy Tool", end: false },
+  { to: "/spam", label: "Spam Calls & Mail", end: false },
   { to: "/letters", label: "Letters", end: false },
-  { to: "/spam", label: "Calls & junk", end: false },
+  { to: "/resources", label: "Additional Resources", end: false },
   { to: "/faq", label: "FAQ", end: false },
   { to: "/privacy", label: "Privacy", end: false },
 ];
 
 export function Layout() {
   return (
+    <SavedDataProvider>
     <div className="shell">
       <a className="skip" href="#content">
         Skip to content
@@ -31,7 +34,7 @@ export function Layout() {
               strokeLinecap="round"
             />
           </svg>
-          <span>Opt Out Helper</span>
+          <span>Privacy Defender</span>
         </NavLink>
         <nav className="nav" aria-label="Main">
           {LINKS.map((link) => (
@@ -46,8 +49,9 @@ export function Layout() {
       </main>
       <footer className="footer">
         <p>Not legal advice. Not affiliated with any listed site.</p>
-        <p>Your name and checklist stay in this browser.</p>
+        <p>Your name and progress stay in this browser.</p>
       </footer>
     </div>
+    </SavedDataProvider>
   );
 }

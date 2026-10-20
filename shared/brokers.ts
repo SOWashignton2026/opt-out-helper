@@ -10,7 +10,7 @@
  * Checked on 2026-10-19.
  *
  * In steps, link a form or page with [label](https://example.com) or
- * [name@example.com](mailto:name@example.com). The checklist turns those into links.
+ * [name@example.com](mailto:name@example.com). The Privacy Tool turns those into links.
  *
  * letterRecommended: true when the practical route is an email, a letter, or a
  * state-privacy deletion request. Simple web forms stay false.
@@ -793,6 +793,27 @@ export const BROKERS: Broker[] = [
     verification: "ok",
   },
 ];
+
+/** Official call registry and complaint forms. Shown on Spam Calls & Mail. */
+export const SPAM_CALL_IDS = ["do-not-call", "ftc-unwanted-calls", "fcc-complaint"] as const;
+
+/** Mail opt-outs, carrier tools, and phone settings. Shown on Additional Resources. */
+export const RESOURCE_IDS = [
+  "dmachoice",
+  "optoutprescreen",
+  "tmobile-scam-shield",
+  "verizon-call-filter",
+  "att-activearmor",
+  "iphone-silence-unknown",
+  "android-spam-protection",
+] as const;
+
+export function brokersByIds(ids: readonly string[]): Broker[] {
+  return ids.flatMap((id) => {
+    const broker = BROKERS.find((item) => item.id === id);
+    return broker ? [broker] : [];
+  });
+}
 
 export function brokersByCategory(category: Category): Broker[] {
   return BROKERS.filter((broker) => broker.category === category);

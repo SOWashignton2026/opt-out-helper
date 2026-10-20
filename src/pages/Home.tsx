@@ -6,7 +6,7 @@ const STEPS = [
     text: "Type your name, city, and state once. It stays on this phone or computer. We do not make an account.",
   },
   {
-    title: "Work the checklist",
+    title: "Go down the list",
     text: "Open each site, ask them to remove you, and mark it Submitted, Removed, or Not listed.",
   },
   {
@@ -40,6 +40,7 @@ function YouTubeIcon() {
 export function HomePage() {
   return (
     <div className="stack">
+      <h1 className="sr">Privacy Defender</h1>
       <section className="about" aria-labelledby="about-title">
         <h2 id="about-title">About me</h2>
         <p>
@@ -75,22 +76,11 @@ export function HomePage() {
         </div>
       </section>
 
-      <section className="hero">
-        <p className="eyebrow">Free and private</p>
-        <h1>Take yourself off people-search sites</h1>
-        <p className="lede">
-          Opt Out Helper is a checklist for the sites that publish your name, address, and phone
-          number. You do the removals yourself. Nothing you type is saved on our server.
-        </p>
-        <div className="row">
-          <Link className="button" to="/checklist">
-            Open the checklist
-          </Link>
-          <Link className="button button-quiet" to="/letters">
-            Write a removal letter
-          </Link>
-        </div>
-      </section>
+      <div className="row">
+        <Link className="button" to="/privacy-tool">
+          Open the Privacy Tool
+        </Link>
+      </div>
 
       <section aria-labelledby="how-title">
         <h2 id="how-title">How it works</h2>
@@ -108,13 +98,13 @@ export function HomePage() {
       </section>
 
       <section className="panel" aria-labelledby="also-title">
-        <h2 id="also-title">Calls and junk mail too</h2>
+        <h2 id="also-title">Spam Calls and Junk Mail</h2>
         <p>
-          The same checklist includes the National Do Not Call Registry, credit-offer opt-out,
-          junk-mail opt-out, and the free spam-call tools from the big phone carriers.
+          Register on the National Do Not Call Registry and report unwanted calls. Mail opt-outs,
+          carrier tools, and phone settings are under Additional Resources.
         </p>
         <Link className="text-link" to="/spam">
-          See the calls and junk mail steps
+          See spam calls and junk mail
         </Link>
       </section>
     </div>

@@ -1,5 +1,6 @@
 export const RECHECK_DAYS = 90;
-export const STORAGE_KEY = "opt-out-helper.v1";
+export const STORAGE_KEY = "privacy-defender.v1";
+export const LEGACY_STORAGE_KEY = "opt-out-helper.v1";
 
 export type Status = "not_started" | "submitted" | "removed" | "not_listed";
 
