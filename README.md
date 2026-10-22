@@ -104,9 +104,15 @@ Checked on October 19, 2026. These rows are marked **Link not verified** in the 
 - **PublicDataUSA.** `publicdatausa.com` did not resolve.
 - **ZabaSearch.** The FAQ describes an opt-out form and says the site is powered by Intelius. A separate form address could not be opened (the site returned the same block page for every path).
 
-Some other sites answered our checker with "forbidden" even for a normal browser-style request. Those links are the companies' published opt-out addresses, but you should open each one yourself. They include BeenVerified, Intelius, PeopleFinders, TruePeopleSearch, FastPeopleSearch, MyLife, Instant Checkmate, US Search, Advanced Background Checks, FamilyTreeNow, and CyberBackgroundChecks. The FCC complaint site and OptOutPrescreen also blocked the checker. Their addresses are the official ones.
+Some other sites answered our checker with "forbidden" even for a normal browser-style request. Those links are the companies' published opt-out addresses, but you should open each one yourself. They include Whitepages, BeenVerified, PeopleFinders, TruePeopleSearch, FastPeopleSearch, MyLife, Veripages, SearchPeopleFree, PeopleSearchNow, FastBackgroundCheck, NeighborWho (the BeenVerified opt-out), Advanced Background Checks, FamilyTreeNow, and CyberBackgroundChecks. The FCC complaint site and OptOutPrescreen also blocked the checker. Their addresses are the official ones.
 
-PeopleConnect runs one free suppression center for Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com. The center at `https://suppression.peopleconnect.us/login` did open.
+Checked again on October 22, 2026:
+
+- **CoreLogic.** `https://www.corelogic.com/privacy-center/` redirected to a missing Cotality page (404). The card is marked **Link not yet verified**. Use the [Cotality privacy policy](https://www.cotality.com/legal/privacy-policy) or email privacy@cotality.com.
+- **PeopleConnect.** One opt-out at `https://suppression.peopleconnect.us/optout` covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com. That page loaded.
+- **New pages that loaded:** USA People Search, InfoTracer, Acxiom, Equifax marketing, LexisNexis (it redirects to the consumer opt-out), Data Axle, Epsilon, Experian marketing, Deep Sync, and Google Results about you.
+
+Spam calls, junk mail, carrier tools, and phone settings are filters inside the Privacy Tool. The old `/spam` and `/resources` addresses open that filter. There is no separate tab for them.
 
 ## Project layout
 
@@ -117,4 +123,4 @@ PeopleConnect runs one free suppression center for Intelius, TruthFinder, Instan
 
 ## Privacy in one paragraph
 
-The Privacy Tool lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. There are no ads and no third-party trackers.
+The Privacy Tool lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. The server stores a hashed count for the 10-letter daily limit and does not log the letter. There are no ads and no third-party trackers. The site sets one necessary cookie for that count.

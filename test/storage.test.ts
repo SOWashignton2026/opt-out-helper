@@ -56,4 +56,27 @@ describe("saved profile", () => {
     expect(loaded.profile.state).toBe("WA");
     expect(store.getItem(STORAGE_KEY)).toContain("Seattle");
   });
+
+  it("drops old reminder timestamps the next time the file is read", () => {
+    const store = memoryStore();
+    store.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        version: 1,
+        profile: {
+          firstName: "Ada",
+          lastName: "Lovelace",
+          city: "Seattle",
+          state: "WA",
+          email: "ada@example.com",
+          phone: "2065550100",
+        },
+        progress: { spokeo: { status: "removed", updatedAt: "2026-01-01T00:00:00.000Z" } },
+      }),
+    );
+    const loaded = readSavedData(store);
+    expect(loaded.progress.spokeo).toEqual({ status: "removed" });
+    expect(loaded.profile.phone).toBe("2065550100");
+    expect(store.getItem(STORAGE_KEY)).not.toContain("updatedAt");
+  });
 });

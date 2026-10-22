@@ -1,8 +1,15 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { BROKERS, type Broker, type Category } from "../../shared/brokers";
-import { buildSearchUrl } from "../../shared/links";
-import { needsRecheck, RECHECK_DAYS, type SavedData, type Status } from "../../shared/progress";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  BROKERS,
+  FILTER_LABELS,
+  TOOL_FILTERS,
+  parseToolFilter,
+  type Broker,
+  type ToolFilter,
+} from "../../shared/brokers";
+import { buildSearchUrl, searchMeHref } from "../../shared/links";
+import { type SavedData, type Status } from "../../shared/progress";
 import { US_STATES } from "../../shared/states";
 import { OptOutButton } from "../components/OptOutButton";
 import { StepList } from "../components/StepList";
@@ -15,22 +22,6 @@ const STATUS_OPTIONS: { value: Status; label: string }[] = [
   { value: "not_listed", label: "Not listed" },
 ];
 
-type Filter = "all" | Category | "recheck";
-
-function formatWhen(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
-}
-
-function recheckLabel(iso: string): string {
-  const then = Date.parse(iso);
-  if (Number.isNaN(then)) return "";
-  const due = new Date(then + RECHECK_DAYS * 24 * 60 * 60 * 1000).toISOString();
-  return `Updated ${formatWhen(iso)}. Recheck after ${formatWhen(due)}.`;
-}
-
 function joinedName(first: string, last: string): string {
   return [first.trim(), last.trim()].filter(Boolean).join(" ");
 }
@@ -41,30 +32,32 @@ function cityAndState(city: string, state: string): string {
 
 export function PrivacyToolPage() {
   const { data, updateProfile, setStatus, clearAll, handled, total } = useSavedData();
-  const [filter, setFilter] = useState<Filter>("all");
+  const [params, setParams] = useSearchParams();
+  const filter = parseToolFilter(params.get("filter"));
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-
-  const due = useMemo(
-    () => BROKERS.filter((broker) => needsRecheck(data.progress[broker.id])),
-    [data.progress],
-  );
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
     return BROKERS.filter((broker) => {
-      if (filter === "recheck" && !needsRecheck(data.progress[broker.id])) return false;
-      if (filter === "people-search" && broker.category !== "people-search") return false;
-      if (filter === "calls-and-junk" && broker.category !== "calls-and-junk") return false;
+      if (filter !== "all" && broker.category !== filter) return false;
       if (!needle) return true;
       return `${broker.name} ${broker.blurb}`.toLowerCase().includes(needle);
     });
-  }, [data.progress, filter, query]);
+  }, [filter, query]);
 
   const percent = total === 0 ? 0 : Math.round((handled / total) * 100);
   const nameCopy = joinedName(data.profile.firstName, data.profile.lastName);
   const placeCopy = cityAndState(data.profile.city, data.profile.state);
   const emailCopy = data.profile.email.trim();
+  const phoneCopy = data.profile.phone.trim();
+
+  function chooseFilter(next: ToolFilter) {
+    const updated = new URLSearchParams(params);
+    if (next === "all") updated.delete("filter");
+    else updated.set("filter", next);
+    setParams(updated, { replace: true });
+  }
 
   async function copyText(value: string) {
     if (!value) return;
@@ -90,8 +83,9 @@ export function PrivacyToolPage() {
       <header className="page-intro">
         <h1>Privacy Tool</h1>
         <p>
-          Add your name to build search links. Then mark each site as you go. A reminder shows up
-          here 90 days after you last updated a row.
+          Fill out your information in the form below to use copy/paste feature. Then navigate
+          through the list and follow the instructions. Once completed, change the status for your
+          reference.
         </p>
       </header>
 
@@ -110,18 +104,13 @@ export function PrivacyToolPage() {
           aria-valuenow={handled}
           aria-label="Privacy Tool progress"
         >
-          <span style={{ width: `${percent}%` }} />
+          <span data-n={percent} />
         </div>
-        {due.length > 0 ? (
-          <p className="notice">
-            Recheck {due.length} {due.length === 1 ? "item" : "items"} you updated at least 90 days
-            ago: {due.map((item) => item.name).join(", ")}.
-          </p>
-        ) : null}
-        <div className="row">
+        <div className="progress-actions">
           <button type="button" className="button button-danger" onClick={onClear}>
             Clear all my data
           </button>
+          <p className="hint">On a shared computer, clear your data when you're done.</p>
         </div>
         {message ? (
           <p role="status" className="hint">
@@ -137,101 +126,119 @@ export function PrivacyToolPage() {
           auto-fill other sites' forms, so use the Copy buttons.
         </p>
         <div className="form-grid">
-          <label>
-            First name
-            <input
-              name="given-name"
-              autoComplete="given-name"
-              value={data.profile.firstName}
-              onChange={(event) => updateProfile({ firstName: event.target.value })}
-              onBlur={(event) => updateProfile({ firstName: event.target.value })}
-            />
-          </label>
-          <label>
-            Last name
-            <input
-              name="family-name"
-              autoComplete="family-name"
-              value={data.profile.lastName}
-              onChange={(event) => updateProfile({ lastName: event.target.value })}
-              onBlur={(event) => updateProfile({ lastName: event.target.value })}
-            />
-          </label>
-          <label>
-            City
-            <input
-              name="address-level2"
-              autoComplete="address-level2"
-              value={data.profile.city}
-              onChange={(event) => updateProfile({ city: event.target.value })}
-              onBlur={(event) => updateProfile({ city: event.target.value })}
-            />
-          </label>
-          <label>
-            State
-            <select
-              name="address-level1"
-              autoComplete="address-level1"
-              value={data.profile.state}
-              onChange={(event) => updateProfile({ state: event.target.value })}
-              onBlur={(event) => updateProfile({ state: event.target.value })}
+          <div className="field">
+            <label>
+              First name
+              <input
+                name="given-name"
+                autoComplete="given-name"
+                value={data.profile.firstName}
+                onChange={(event) => updateProfile({ firstName: event.target.value })}
+                onBlur={(event) => updateProfile({ firstName: event.target.value })}
+              />
+            </label>
+          </div>
+          <div className="field">
+            <label>
+              Last name
+              <input
+                name="family-name"
+                autoComplete="family-name"
+                value={data.profile.lastName}
+                onChange={(event) => updateProfile({ lastName: event.target.value })}
+                onBlur={(event) => updateProfile({ lastName: event.target.value })}
+              />
+            </label>
+            <button
+              type="button"
+              className="button button-quiet copy-button"
+              onClick={() => void copyText(nameCopy)}
+              disabled={!nameCopy}
             >
-              <option value="">Select</option>
-              {US_STATES.map((state) => (
-                <option key={state.code} value={state.code}>
-                  {state.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Email <span className="optional">optional</span>
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              value={data.profile.email}
-              onChange={(event) => updateProfile({ email: event.target.value })}
-              onBlur={(event) => updateProfile({ email: event.target.value })}
-            />
-          </label>
-          <label>
-            Phone <span className="optional">optional</span>
-            <input
-              name="tel"
-              type="tel"
-              autoComplete="tel"
-              value={data.profile.phone}
-              onChange={(event) => updateProfile({ phone: event.target.value })}
-              onBlur={(event) => updateProfile({ phone: event.target.value })}
-            />
-          </label>
-        </div>
-        <div className="row">
-          <button
-            type="button"
-            className="button button-quiet copy-button"
-            onClick={() => void copyText(nameCopy)}
-            disabled={!nameCopy}
-          >
-            Copy name
-          </button>
-          <button
-            type="button"
-            className="button button-quiet copy-button"
-            onClick={() => void copyText(placeCopy)}
-            disabled={!placeCopy}
-          >
-            Copy city and state
-          </button>
-          <button
-            type="button"
-            className="button button-quiet copy-button"
-            onClick={() => void copyText(emailCopy)}
-            disabled={!emailCopy}
-          >
-            Copy email
-          </button>
+              Copy name
+            </button>
+          </div>
+          <div className="field">
+            <label>
+              City
+              <input
+                name="address-level2"
+                autoComplete="address-level2"
+                value={data.profile.city}
+                onChange={(event) => updateProfile({ city: event.target.value })}
+                onBlur={(event) => updateProfile({ city: event.target.value })}
+              />
+            </label>
+          </div>
+          <div className="field">
+            <label>
+              State
+              <select
+                name="address-level1"
+                autoComplete="address-level1"
+                value={data.profile.state}
+                onChange={(event) => updateProfile({ state: event.target.value })}
+                onBlur={(event) => updateProfile({ state: event.target.value })}
+              >
+                <option value="">Select</option>
+                {US_STATES.map((state) => (
+                  <option key={state.code} value={state.code}>
+                    {state.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="button button-quiet copy-button"
+              onClick={() => void copyText(placeCopy)}
+              disabled={!placeCopy}
+            >
+              Copy city & state
+            </button>
+          </div>
+          <div className="field">
+            <label>
+              Email <span className="optional">optional</span>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                value={data.profile.email}
+                onChange={(event) => updateProfile({ email: event.target.value })}
+                onBlur={(event) => updateProfile({ email: event.target.value })}
+              />
+            </label>
+            <button
+              type="button"
+              className="button button-quiet copy-button"
+              onClick={() => void copyText(emailCopy)}
+              disabled={!emailCopy}
+            >
+              Copy email
+            </button>
+          </div>
+          <div className="field">
+            <label>
+              Phone <span className="optional">optional</span>
+              <input
+                name="tel"
+                type="tel"
+                autoComplete="tel"
+                value={data.profile.phone}
+                onChange={(event) => updateProfile({ phone: event.target.value })}
+                onBlur={(event) => updateProfile({ phone: event.target.value })}
+              />
+            </label>
+            <button
+              type="button"
+              className="button button-quiet copy-button"
+              onClick={() => void copyText(phoneCopy)}
+              disabled={!phoneCopy}
+            >
+              Copy phone
+            </button>
+          </div>
         </div>
       </section>
 
@@ -245,22 +252,15 @@ export function PrivacyToolPage() {
           />
         </label>
         <div className="filters" role="group" aria-label="Filter">
-          {(
-            [
-              ["all", "All"],
-              ["people-search", "People-search"],
-              ["calls-and-junk", "Spam & mail"],
-              ["recheck", "Recheck due"],
-            ] as const
-          ).map(([value, label]) => (
+          {TOOL_FILTERS.map((value) => (
             <button
               key={value}
               type="button"
               className={filter === value ? "chip on" : "chip"}
               aria-pressed={filter === value}
-              onClick={() => setFilter(value)}
+              onClick={() => chooseFilter(value)}
             >
-              {label}
+              {FILTER_LABELS[value]}
             </button>
           ))}
         </div>
@@ -277,7 +277,6 @@ export function PrivacyToolPage() {
             key={broker.id}
             broker={broker}
             status={data.progress[broker.id]?.status ?? "not_started"}
-            updatedAt={data.progress[broker.id]?.updatedAt ?? null}
             profile={data.profile}
             onStatus={(status) => setStatus(broker.id, status)}
           />
@@ -290,19 +289,16 @@ export function PrivacyToolPage() {
 function BrokerCard({
   broker,
   status,
-  updatedAt,
   profile,
   onStatus,
 }: {
   broker: Broker;
   status: Status;
-  updatedAt: string | null;
   profile: SavedData["profile"];
   onStatus: (status: Status) => void;
 }) {
-  const search = broker.searchUrlTemplate ? buildSearchUrl(broker.searchUrlTemplate, profile) : null;
+  const search = searchMeHref(broker, profile);
   const phone = broker.phoneSearchUrl ? buildSearchUrl(broker.phoneSearchUrl, profile) : null;
-  const recheck = needsRecheck({ status, updatedAt });
 
   return (
     <article className="card" id={broker.id}>
@@ -310,8 +306,10 @@ function BrokerCard({
         <h2>{broker.name}</h2>
         <div className="tags">
           <span className={`tag tag-${broker.difficulty}`}>{broker.difficulty}</span>
-          {broker.verification === "failed" ? <span className="flag">Link not verified</span> : null}
-          {recheck ? <span className="flag">Recheck</span> : null}
+          {broker.linkNotVerified ? <span className="flag">Link not yet verified</span> : null}
+          {!broker.linkNotVerified && broker.verification === "failed" ? (
+            <span className="flag">Link not verified</span>
+          ) : null}
         </div>
       </header>
       <p>{broker.blurb}</p>
@@ -321,21 +319,9 @@ function BrokerCard({
         {broker.requiresPhone ? <li>May ask for a phone number</li> : null}
       </ul>
       <div className="row">
-        <OptOutButton broker={broker} />
-        {broker.letterRecommended ? (
-          <Link className="button button-quiet" to={`/letters?broker=${broker.id}`}>
-            Write a letter
-          </Link>
-        ) : null}
-        {broker.searchUrlTemplate ? (
-          search ? (
-            <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">
-              Search for me
-            </a>
-          ) : (
-            <span className="hint">Add your name, city, and state to build a search link.</span>
-          )
-        ) : null}
+        <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">
+          Search me
+        </a>
         {broker.phoneSearchUrl ? (
           <a
             className="button button-quiet"
@@ -348,6 +334,14 @@ function BrokerCard({
         ) : null}
       </div>
       <StepList steps={broker.steps} />
+      <div className="row card-actions">
+        <OptOutButton broker={broker} />
+        {broker.letterRecommended ? (
+          <Link className="button button-quiet" to={`/letters?broker=${broker.id}`}>
+            Write a letter
+          </Link>
+        ) : null}
+      </div>
       <div className="status-row">
         <label>
           Status for {broker.name}
@@ -359,7 +353,6 @@ function BrokerCard({
             ))}
           </select>
         </label>
-        <p className="hint">{updatedAt && status !== "not_started" ? recheckLabel(updatedAt) : "Not updated yet"}</p>
       </div>
     </article>
   );

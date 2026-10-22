@@ -27,8 +27,13 @@ function parseStored(raw: string | null): SavedData | null {
 
 /** Read the saved profile and progress. Falls back to the previous app name's key. */
 export function readSavedData(store: KeyValueStore): SavedData {
-  const current = parseStored(store.getItem(STORAGE_KEY));
-  if (current) return current;
+  const raw = store.getItem(STORAGE_KEY);
+  const current = parseStored(raw);
+  if (current) {
+    // Drop reminder timestamps saved by an older version of this app.
+    if (raw?.includes('"updatedAt"')) writeSavedData(store, current);
+    return current;
+  }
   const legacy = parseStored(store.getItem(LEGACY_STORAGE_KEY));
   if (legacy) {
     writeSavedData(store, legacy);
@@ -71,10 +76,7 @@ function useSavedDataState(): SavedApi {
     setData((current) => {
       const previous = current.progress[id];
       if (status !== "not_started" && previous?.status === status) return current;
-      const nextItem: ItemProgress = {
-        status,
-        updatedAt: status === "not_started" ? null : new Date().toISOString(),
-      };
+      const nextItem: ItemProgress = { status };
       const next = { ...current, progress: { ...current.progress, [id]: nextItem } };
       writeSavedData(localStorage, next);
       return next;

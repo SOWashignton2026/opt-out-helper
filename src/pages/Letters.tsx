@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { brokersByCategory } from "../../shared/brokers";
+import { BROKERS, letterBrokers } from "../../shared/brokers";
 import { validateLetterRequest, type LetterType } from "../../shared/letter";
-import { BROKERS } from "../../shared/brokers";
 import { privacyLawFor } from "../../shared/privacy-laws";
 import { buildTemplateLetter } from "../../shared/templates";
 import { US_STATES } from "../../shared/states";
@@ -35,7 +34,7 @@ type ApiBody = {
 };
 
 export function LettersPage() {
-  const sites = useMemo(() => brokersByCategory("people-search"), []);
+  const sites = useMemo(() => letterBrokers(), []);
   const recommended = useMemo(() => sites.filter((site) => site.letterRecommended), [sites]);
   const [params] = useSearchParams();
   const requestedId = params.get("broker") ?? "";
@@ -63,6 +62,10 @@ export function LettersPage() {
     setBrokerId(requested.id);
     if (!requested.letterRecommended) setShowAll(true);
   }, [requestedId, sites]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [requestedId]);
 
   function toggleShowAll() {
     setShowAll((current) => {

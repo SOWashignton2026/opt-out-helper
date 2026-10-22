@@ -1,4 +1,4 @@
-import type { Broker } from "./brokers";
+import { acceptsLetter, type Broker } from "./brokers";
 import { privacyLawFor } from "./privacy-laws";
 import { isStateCode } from "./states";
 
@@ -61,8 +61,8 @@ export function validateLetterRequest(
 
   const brokerId = cleanText(record.brokerId);
   const broker = brokers.find((item) => item.id === brokerId);
-  if (!broker || broker.category !== "people-search") {
-    return { ok: false, error: "Pick a people-search site from the list." };
+  if (!broker || !acceptsLetter(broker)) {
+    return { ok: false, error: "Pick a site from the list." };
   }
 
   const firstName = cleanText(record.firstName);

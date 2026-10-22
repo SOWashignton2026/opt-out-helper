@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { BROKERS, RESOURCE_IDS, SPAM_CALL_IDS, type Broker } from "../shared/brokers";
-import { buildSearchUrl } from "../shared/links";
-import { needsRecheck, parseSavedData, type Profile } from "../shared/progress";
+import {
+  BROKERS,
+  FILTER_LABELS,
+  PEOPLE_CONNECT_OPTOUT,
+  RESOURCE_IDS,
+  SPAM_CALL_IDS,
+  STATE_LIMITED_IDS,
+  parseToolFilter,
+  type Broker,
+} from "../shared/brokers";
+import { PRIVACY_BOT_TEMPLATE_URL, buildSearchUrl, privacyBotTemplateHref, searchMeHref } from "../shared/links";
+import { parseSavedData, type Profile } from "../shared/progress";
 import { parseStep, stepHrefs } from "../shared/steps";
 
 const REQUIRED: (keyof Broker)[] = [
@@ -56,7 +65,7 @@ describe("broker list", () => {
       expect(broker.id).toMatch(/^[a-z0-9-]{2,40}$/);
       for (const key of REQUIRED) expect(broker[key]).not.toBeUndefined();
       expect(["easy", "medium", "hard"]).toContain(broker.difficulty);
-      expect(["people-search", "calls-and-junk"]).toContain(broker.category);
+      expect(["people-search", "spam", "marketing", "search"]).toContain(broker.category);
       expect(["ok", "blocked", "failed"]).toContain(broker.verification);
       expect(broker.optOutUrl.startsWith("https://")).toBe(true);
       expect(broker.steps.length).toBeGreaterThan(0);
@@ -69,8 +78,12 @@ describe("broker list", () => {
       } else {
         expect(broker.lastVerified).toMatch(/^\d{4}-\d{2}-\d{2}$/);
       }
-      for (const template of [broker.searchUrlTemplate, broker.phoneSearchUrl]) {
+      for (const template of [broker.searchUrlTemplate, broker.phoneSearchUrl, broker.homeUrl]) {
         if (template) expect(template.startsWith("https://")).toBe(true);
+      }
+      if (broker.linkNotVerified) {
+        expect(broker.verification).toBe("failed");
+        expect(broker.lastVerified).toBeNull();
       }
     }
   });
@@ -79,12 +92,15 @@ describe("broker list", () => {
     const failed = BROKERS.filter((broker) => broker.verification === "failed").map((broker) => broker.id);
     expect(failed.sort()).toEqual([
       "clustrmaps",
+      "corelogic",
       "nuwber",
       "peekyou",
       "publicdatausa",
       "radaris",
       "zabasearch",
     ]);
+    const notYet = BROKERS.filter((broker) => broker.linkNotVerified).map((broker) => broker.id);
+    expect(notYet).toEqual(["corelogic"]);
   });
 
   it("links every named form or page, including Spokeo's opt-out form", () => {
@@ -115,19 +131,60 @@ describe("broker list", () => {
     const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
     expect(spokeo?.letterRecommended).toBe(false);
     for (const broker of BROKERS) {
-      if (broker.category === "calls-and-junk") expect(broker.letterRecommended).toBe(false);
+      if (broker.category === "spam" || broker.category === "search") {
+        expect(broker.letterRecommended).toBe(false);
+      }
     }
+    expect(BROKERS.find((broker) => broker.id === "acxiom")?.category).toBe("marketing");
   });
 
-  it("splits call and mail tasks between spam calls and additional resources", () => {
-    const calls = BROKERS.filter((broker) => broker.category === "calls-and-junk").map((broker) => broker.id);
+  it("keeps every former spam and resources item as a Privacy Tool card", () => {
+    const spam = BROKERS.filter((broker) => broker.category === "spam").map((broker) => broker.id);
     const listed = [...SPAM_CALL_IDS, ...RESOURCE_IDS];
-    expect(listed.slice().sort()).toEqual(calls.slice().sort());
+    for (const id of listed) expect(spam).toContain(id);
     expect(new Set(listed).size).toBe(listed.length);
     expect(SPAM_CALL_IDS).toEqual(["do-not-call", "ftc-unwanted-calls", "fcc-complaint"]);
-    expect(RESOURCE_IDS).toContain("dmachoice");
-    expect(RESOURCE_IDS).toContain("optoutprescreen");
-    expect(RESOURCE_IDS).toContain("iphone-silence-unknown");
+    expect(RESOURCE_IDS).toEqual([
+      "dmachoice",
+      "optoutprescreen",
+      "tmobile-scam-shield",
+      "verizon-call-filter",
+      "att-activearmor",
+      "iphone-silence-unknown",
+      "android-spam-protection",
+    ]);
+    const optOut = BROKERS.find((broker) => broker.id === "optoutprescreen");
+    expect(optOut?.steps.join(" ")).toContain("1-888-567-8688");
+    const dma = BROKERS.find((broker) => broker.id === "dmachoice");
+    expect(dma?.steps.join(" ")).toContain("about $6");
+  });
+
+  it("uses the checked opt-out addresses and marks state-limited sites", () => {
+    expect(BROKERS.find((broker) => broker.id === "whitepages")?.optOutUrl).toBe(
+      "https://www.whitepages.com/suppression-requests",
+    );
+    for (const id of ["intelius", "truthfinder", "instant-checkmate", "us-search", "addresses"]) {
+      const broker = BROKERS.find((item) => item.id === id);
+      expect(broker?.optOutUrl).toBe(PEOPLE_CONNECT_OPTOUT);
+      expect(broker?.steps.join(" ")).toContain("One PeopleConnect opt-out covers");
+    }
+    const limited = BROKERS.filter((broker) => broker.stateLimited).map((broker) => broker.id);
+    expect(limited.slice().sort()).toEqual([...STATE_LIMITED_IDS].slice().sort());
+    expect(BROKERS.find((broker) => broker.id === "google-results-about-you")?.category).toBe("search");
+    expect(BROKERS.find((broker) => broker.id === "equifax-marketing")?.category).toBe("marketing");
+  });
+
+  it("reads the Privacy Tool filter from the address", () => {
+    expect(parseToolFilter("spam")).toBe("spam");
+    expect(parseToolFilter("calls-and-junk")).toBe("spam");
+    expect(parseToolFilter("marketing")).toBe("marketing");
+    expect(parseToolFilter("search")).toBe("search");
+    expect(parseToolFilter("people")).toBe("people-search");
+    expect(parseToolFilter("nope")).toBe("all");
+    expect(FILTER_LABELS.spam).toBe("Spam Calls & Junk Mail");
+    expect(FILTER_LABELS["people-search"]).toBe("People-Search Sites");
+    expect(FILTER_LABELS.marketing).toBe("Marketing Data Brokers");
+    expect(FILTER_LABELS.search).toBe("Search Engines");
   });
 
   it("builds a Spokeo search link and phone lookups", () => {
@@ -143,6 +200,22 @@ describe("broker list", () => {
     const book = BROKERS.find((broker) => broker.id === "usphonebook");
     expect(buildSearchUrl(book?.phoneSearchUrl ?? "", profile)).toBe("https://www.usphonebook.com/2025550100");
     expect(buildSearchUrl(book?.phoneSearchUrl ?? "", { ...profile, phone: "" })).toBeNull();
+    expect(searchMeHref(book ?? { optOutUrl: "https://example.com/" }, profile)).toBe(
+      "https://www.usphonebook.com/john-smith",
+    );
+    const intelius = BROKERS.find((broker) => broker.id === "intelius");
+    expect(searchMeHref(intelius ?? { optOutUrl: "https://example.com/" }, profile)).toBe(
+      "https://www.intelius.com/",
+    );
+    const bare = { optOutUrl: "https://example.com/opt-out" };
+    expect(searchMeHref(bare, profile)).toBe("https://example.com/");
+  });
+
+  it("shows the Privacy Bot template only when the link is set", () => {
+    expect(PRIVACY_BOT_TEMPLATE_URL).toBe("https://x.ai/bot/m8LgFBTwlCWHQvVMy77z_");
+    expect(privacyBotTemplateHref()).toBe(PRIVACY_BOT_TEMPLATE_URL);
+    expect(privacyBotTemplateHref("")).toBeNull();
+    expect(privacyBotTemplateHref("  ")).toBeNull();
   });
 });
 
@@ -157,15 +230,9 @@ describe("saved progress", () => {
       },
     });
     expect(saved?.profile.state).toBe("TX");
-    expect(saved?.progress.spokeo?.status).toBe("removed");
+    expect(saved?.progress.spokeo).toEqual({ status: "removed" });
+    expect(saved?.progress.spokeo).not.toHaveProperty("updatedAt");
     expect(saved?.progress.bad).toBeUndefined();
     expect(parseSavedData({ version: 2 })).toBeNull();
-  });
-
-  it("asks for a recheck 90 days after an update", () => {
-    const now = Date.parse("2026-10-19T00:00:00.000Z");
-    expect(needsRecheck({ status: "removed", updatedAt: "2026-07-01T00:00:00.000Z" }, now)).toBe(true);
-    expect(needsRecheck({ status: "removed", updatedAt: "2026-10-01T00:00:00.000Z" }, now)).toBe(false);
-    expect(needsRecheck({ status: "not_started", updatedAt: "2020-01-01T00:00:00.000Z" }, now)).toBe(false);
   });
 });

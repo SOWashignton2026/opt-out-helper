@@ -2,6 +2,7 @@ import { decideCap, hashVisitorId, isVisitorCookie, parseDailyLimit, readCookie,
 import { BROKERS } from "../shared/brokers";
 import { buildLetterPrompt, LETTER_LIMITS, LETTER_SYSTEM_PROMPT, validateLetterRequest } from "../shared/letter";
 import { fetchWith5xxRetry } from "../shared/retry";
+import { API_CSP, PAGE_CSP, securityHeaders } from "../shared/security";
 import { buildTemplateLetter } from "../shared/templates";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
@@ -13,6 +14,15 @@ function mockEnabled(value: string): boolean {
   return value === "true";
 }
 
+function applySecurity(response: Response, csp: string): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries(securityHeaders(csp))) {
+    headers.set(key, value);
+  }
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+/** Outcome only. Never log the letter, the prompt, or the visitor's name, email, phone, or notes. */
 function log(fields: Record<string, string | number | boolean>): void {
   console.log(JSON.stringify(fields));
 }
@@ -21,10 +31,7 @@ function json(body: unknown, status: number, extra: HeadersInit = {}): Response 
   const headers = new Headers(extra);
   headers.set("Content-Type", "application/json; charset=utf-8");
   headers.set("Cache-Control", "no-store");
-  headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "no-referrer");
-  headers.set("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'");
-  return new Response(JSON.stringify(body), { status, headers });
+  return applySecurity(new Response(JSON.stringify(body), { status, headers }), API_CSP);
 }
 
 function withCookie(response: Response, request: Request, cookieId: string | null): Response {
@@ -291,6 +298,6 @@ export default {
         return json({ error: "server", message: "Something went wrong. Use the template below." }, 500);
       }
     }
-    return env.ASSETS.fetch(request);
+    return applySecurity(await env.ASSETS.fetch(request), PAGE_CSP);
   },
 } satisfies ExportedHandler<Env>;

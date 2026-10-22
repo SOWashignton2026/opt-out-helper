@@ -1,13 +1,14 @@
 import { Link } from "react-router-dom";
+import { PRIVACY_BOT_TEMPLATE_URL, privacyBotTemplateHref } from "../../shared/links";
 
 const STEPS = [
   {
-    title: "Add your name",
-    text: "Type your name, city, and state once. It stays on this phone or computer. We do not make an account.",
+    title: "Fill out your information",
+    text: "Type your basic information to use copy/paste function during opt-out process. Your information stays on this device and browser, unless you choose to clear your data by utilizing “Clear all my data” button.",
   },
   {
     title: "Go down the list",
-    text: "Open each site, ask them to remove you, and mark it Submitted, Removed, or Not listed.",
+    text: "Open each site, search your information, complete form to remove it, and mark it Submitted, Removed, or Not listed for your reference.",
   },
   {
     title: "Send a letter if they ask",
@@ -76,12 +77,6 @@ export function HomePage() {
         </div>
       </section>
 
-      <div className="row">
-        <Link className="button" to="/privacy-tool">
-          Open the Privacy Tool
-        </Link>
-      </div>
-
       <section aria-labelledby="how-title">
         <h2 id="how-title">How it works</h2>
         <ol className="steps">
@@ -97,16 +92,47 @@ export function HomePage() {
         </ol>
       </section>
 
+      <div className="row">
+        <Link className="button" to="/privacy-tool">
+          Open the Privacy Tool
+        </Link>
+      </div>
+
       <section className="panel" aria-labelledby="also-title">
         <h2 id="also-title">Spam Calls and Junk Mail</h2>
         <p>
-          Register on the National Do Not Call Registry and report unwanted calls. Mail opt-outs,
-          carrier tools, and phone settings are under Additional Resources.
+          These tools are in the Privacy Tool. There is no separate tab. Use the Spam Calls & Junk
+          Mail filter to register on the Do Not Call list, report unwanted calls, opt out of junk
+          mail, and turn on your phone’s spam settings.
         </p>
-        <Link className="text-link" to="/spam">
-          See spam calls and junk mail
+        <Link className="text-link" to="/privacy-tool?filter=spam">
+          Open Spam Calls & Junk Mail
         </Link>
       </section>
+
+      <PrivacyBot />
     </div>
+  );
+}
+
+function PrivacyBot() {
+  const templateUrl = privacyBotTemplateHref(PRIVACY_BOT_TEMPLATE_URL);
+  return (
+    <section className="panel" aria-labelledby="bot-title">
+      <h2 id="bot-title">Already use Grok Bot?</h2>
+      <p>
+        A free privacy assistant that finds your personal info on people-search sites and data
+        brokers, walks you through removing it site by site, and cuts spam calls. It watches for
+        breaches and never submits, sends or changes anything without your yes.
+      </p>
+      {templateUrl ? (
+        <a className="button" href={templateUrl} target="_blank" rel="noopener noreferrer">
+          Get the free Privacy Bot template
+          <span className="sr"> (opens in a new tab)</span>
+        </a>
+      ) : (
+        <p className="hint">Template link coming soon</p>
+      )}
+    </section>
   );
 }

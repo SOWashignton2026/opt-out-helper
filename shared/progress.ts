@@ -1,4 +1,3 @@
-export const RECHECK_DAYS = 90;
 export const STORAGE_KEY = "privacy-defender.v1";
 export const LEGACY_STORAGE_KEY = "opt-out-helper.v1";
 
@@ -6,7 +5,6 @@ export type Status = "not_started" | "submitted" | "removed" | "not_listed";
 
 export type ItemProgress = {
   status: Status;
-  updatedAt: string | null;
 };
 
 export type Profile = {
@@ -39,18 +37,12 @@ export function emptySavedData(): SavedData {
   return { version: 1, profile: { ...EMPTY_PROFILE }, progress: {} };
 }
 
-export function needsRecheck(item: ItemProgress | undefined, now = Date.now()): boolean {
-  if (!item || item.status === "not_started" || !item.updatedAt) return false;
-  const then = Date.parse(item.updatedAt);
-  if (Number.isNaN(then)) return false;
-  return now - then >= RECHECK_DAYS * 24 * 60 * 60 * 1000;
-}
-
 function clip(value: unknown, max: number): string {
   if (typeof value !== "string") return "";
   return value.replace(/[\u0000-\u001F\u007F]/g, "").trim().slice(0, max);
 }
 
+/** Read a saved file. Old reminder timestamps are ignored. */
 export function parseSavedData(input: unknown): SavedData | null {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
   const record = input as Record<string, unknown>;
@@ -75,11 +67,7 @@ export function parseSavedData(input: unknown): SavedData | null {
       const item = value as Record<string, unknown>;
       const status = item.status;
       if (typeof status !== "string" || !STATUSES.includes(status as Status)) continue;
-      const updatedAt = typeof item.updatedAt === "string" ? item.updatedAt : null;
-      progress[id] = {
-        status: status as Status,
-        updatedAt: updatedAt && !Number.isNaN(Date.parse(updatedAt)) ? updatedAt : null,
-      };
+      progress[id] = { status: status as Status };
     }
   }
   return { version: 1, profile, progress };

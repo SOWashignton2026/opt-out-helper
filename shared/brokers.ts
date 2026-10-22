@@ -7,7 +7,7 @@
  * - blocked: the usual official address, but the site refused our automated check
  * - failed: we could not confirm a working removal page (see notes)
  *
- * Checked on 2026-10-19.
+ * Checked on 2026-10-19. New and changed links were checked again on 2026-10-22.
  *
  * In steps, link a form or page with [label](https://example.com) or
  * [name@example.com](mailto:name@example.com). The Privacy Tool turns those into links.
@@ -16,7 +16,7 @@
  * state-privacy deletion request. Simple web forms stay false.
  */
 export type Difficulty = "easy" | "medium" | "hard";
-export type Category = "people-search" | "calls-and-junk";
+export type Category = "people-search" | "spam" | "marketing" | "search";
 export type Verification = "ok" | "blocked" | "failed";
 
 export type Broker = {
@@ -25,6 +25,8 @@ export type Broker = {
   category: Category;
   blurb: string;
   optOutUrl: string;
+  /** Public search or home page when it is not the opt-out host. */
+  homeUrl?: string;
   /** Tokens: {firstSlug} {lastSlug} {nameSlug} {firstLower} {lastLower} {citySlug} {cityLower} {city} {state} {stateLower} {stateName} {phone} */
   searchUrlTemplate?: string;
   phoneSearchUrl?: string;
@@ -35,6 +37,10 @@ export type Broker = {
   requiresPhone: boolean;
   /** True when a written request is the useful route, not a simple opt-out form. */
   letterRecommended: boolean;
+  /** The site often refuses people outside states with a consumer privacy law. */
+  stateLimited?: boolean;
+  /** True when the opt-out link itself could not be confirmed. */
+  linkNotVerified?: boolean;
   /** YYYY-MM-DD when the link checked out, or null when verification is failed. */
   lastVerified: string | null;
   verification: Verification;
@@ -42,6 +48,12 @@ export type Broker = {
 };
 
 const CHECKED = "2026-10-19";
+const RECHECKED = "2026-10-22";
+
+export const PEOPLE_CONNECT_OPTOUT = "https://suppression.peopleconnect.us/optout";
+
+const STATE_LIMITED_NOTE =
+  "Often only removes residents of states with a consumer privacy law. The site may look at the state you enter, the address on the listing, and sometimes your IP address. Do not say you live in a state you do not live in.";
 
 export const BROKERS: Broker[] = [
   {
@@ -71,13 +83,14 @@ export const BROKERS: Broker[] = [
     name: "Whitepages",
     category: "people-search",
     blurb: "People search and reverse phone lookup.",
-    optOutUrl: "https://www.whitepages.com/privacy/consumer-rights",
+    optOutUrl: "https://www.whitepages.com/suppression-requests",
+    homeUrl: "https://www.whitepages.com/",
     searchUrlTemplate: "https://www.whitepages.com/name/{nameSlug}/{citySlug}-{state}",
     phoneSearchUrl: "https://www.whitepages.com/reverse-phone",
     steps: [
-      "Open the [consumer privacy page](https://www.whitepages.com/privacy/consumer-rights) and find the opt-out tool.",
+      "Open the [suppression request page](https://www.whitepages.com/suppression-requests).",
       "Search your name, open your listing, and copy that page address.",
-      "Paste the address into the tool. The automated tool asks for a phone number.",
+      "Paste the address into the form. The tool may ask for a phone number.",
       "If you would rather not give a phone number, email [privacyrequest@whitepages.com](mailto:privacyrequest@whitepages.com).",
     ],
     difficulty: "medium",
@@ -85,9 +98,9 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: true,
     letterRecommended: false,
-    lastVerified: CHECKED,
-    verification: "ok",
-    notes: "The company's consumer-rights page describes this tool. A direct fetch of the site was blocked.",
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: "Suppression request page. A direct fetch was blocked. Email alternative: privacyrequest@whitepages.com.",
   },
   {
     id: "beenverified",
@@ -114,12 +127,13 @@ export const BROKERS: Broker[] = [
     id: "intelius",
     name: "Intelius",
     category: "people-search",
-    blurb: "PeopleConnect site. Shares a free suppression tool with TruthFinder, Instant Checkmate, and US Search.",
-    optOutUrl: "https://www.intelius.com/opt-out",
+    blurb: "PeopleConnect site. One opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+    optOutUrl: PEOPLE_CONNECT_OPTOUT,
+    homeUrl: "https://www.intelius.com/",
     steps: [
-      "Open the [opt-out page](https://www.intelius.com/opt-out). It leads to the free [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
-      "Confirm your email from the message they send.",
-      "Add your legal name and switch your listing to suppressed.",
+      "Open the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout).",
+      "One PeopleConnect opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+      "Confirm your email, then suppress the listing for your name.",
       "You do not need an account or a paid membership to do this.",
     ],
     difficulty: "medium",
@@ -127,15 +141,15 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: CHECKED,
-    verification: "blocked",
-    notes: "Same company tool as https://suppression.peopleconnect.us/login, which we opened.",
+    lastVerified: RECHECKED,
+    verification: "ok",
+    notes: "The PeopleConnect suppression page loaded. One request covers the sister sites.",
   },
   {
     id: "peoplefinders",
     name: "PeopleFinders",
     category: "people-search",
-    blurb: "People search. Removal is confirmed by email.",
+    blurb: "People search. Removal is confirmed by email. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.peoplefinders.com/opt-out",
     steps: [
       "Search your name and state and open your profile.",
@@ -148,14 +162,16 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "blocked",
+    notes: STATE_LIMITED_NOTE,
   },
   {
     id: "truepeoplesearch",
     name: "TruePeopleSearch",
     category: "people-search",
-    blurb: "Free people search. Remove the profile from the listing page.",
+    blurb: "Free people search. Remove the profile from the listing page. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.truepeoplesearch.com/removal",
     searchUrlTemplate:
       "https://www.truepeoplesearch.com/results?name={firstSlug}+{lastSlug}&citystatezip={city},+{state}",
@@ -170,14 +186,16 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "blocked",
+    notes: STATE_LIMITED_NOTE,
   },
   {
     id: "fastpeoplesearch",
     name: "FastPeopleSearch",
     category: "people-search",
-    blurb: "Free people search with an email removal form.",
+    blurb: "Free people search with an email removal form. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.fastpeoplesearch.com/removal",
     searchUrlTemplate: "https://www.fastpeoplesearch.com/name/{firstLower}-{lastLower}_{cityLower}-{stateLower}",
     steps: [
@@ -191,8 +209,10 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "blocked",
+    notes: STATE_LIMITED_NOTE,
   },
   {
     id: "radaris",
@@ -239,62 +259,67 @@ export const BROKERS: Broker[] = [
     id: "instant-checkmate",
     name: "Instant Checkmate",
     category: "people-search",
-    blurb: "PeopleConnect site. Use the same free suppression center as Intelius.",
-    optOutUrl: "https://www.instantcheckmate.com/opt-out/",
+    blurb: "PeopleConnect site. One opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+    optOutUrl: PEOPLE_CONNECT_OPTOUT,
+    homeUrl: "https://www.instantcheckmate.com/",
     steps: [
-      "Open the [opt-out page](https://www.instantcheckmate.com/opt-out/). It should send you to the [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
-      "Confirm your email.",
-      "Suppress the listing for your name.",
-      "Suppressing here also covers the other PeopleConnect people-search sites.",
+      "Open the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout).",
+      "One PeopleConnect opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+      "Confirm your email, then suppress the listing for your name.",
+      "You do not need a paid membership to do this.",
     ],
     difficulty: "medium",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: CHECKED,
-    verification: "blocked",
-    notes: "Direct tool we opened: https://suppression.peopleconnect.us/login",
+    lastVerified: RECHECKED,
+    verification: "ok",
+    notes: "The PeopleConnect suppression page loaded. One request covers the sister sites.",
   },
   {
     id: "truthfinder",
     name: "TruthFinder",
     category: "people-search",
-    blurb: "PeopleConnect site. The opt-out page is their suppression center.",
-    optOutUrl: "https://www.truthfinder.com/opt-out/",
+    blurb: "PeopleConnect site. One opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+    optOutUrl: PEOPLE_CONNECT_OPTOUT,
+    homeUrl: "https://www.truthfinder.com/",
     steps: [
-      "Open the [opt-out page](https://www.truthfinder.com/opt-out/). It is the [PeopleConnect suppression center](https://suppression.peopleconnect.us/login).",
-      "Confirm your email.",
-      "Suppress your background report so name searches do not show it.",
-      "The same choice covers Intelius, Instant Checkmate, and US Search.",
+      "Open the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout).",
+      "One PeopleConnect opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+      "Confirm your email, then suppress your background report.",
+      "You only need to do this once for the sister sites.",
     ],
     difficulty: "medium",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: CHECKED,
+    lastVerified: RECHECKED,
     verification: "ok",
+    notes: "The PeopleConnect suppression page loaded. One request covers the sister sites.",
   },
   {
     id: "us-search",
     name: "US Search",
     category: "people-search",
-    blurb: "PeopleConnect site. Use the shared suppression center.",
-    optOutUrl: "https://www.ussearch.com/opt-out/",
+    blurb: "PeopleConnect site. One opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+    optOutUrl: PEOPLE_CONNECT_OPTOUT,
+    homeUrl: "https://www.ussearch.com/",
     steps: [
-      "Open the [opt-out page](https://www.ussearch.com/opt-out/) and continue to the [suppression center](https://suppression.peopleconnect.us/login).",
-      "Confirm your email.",
-      "Suppress your listing.",
-      "If this address fails, use the [suppression center](https://suppression.peopleconnect.us/login) directly.",
+      "Open the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout).",
+      "One PeopleConnect opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+      "Confirm your email, then suppress your listing.",
+      "You only need to do this once for the sister sites.",
     ],
     difficulty: "medium",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: CHECKED,
-    verification: "blocked",
+    lastVerified: RECHECKED,
+    verification: "ok",
+    notes: "The PeopleConnect suppression page loaded. One request covers the sister sites.",
   },
   {
     id: "peoplelooker",
@@ -325,7 +350,7 @@ export const BROKERS: Broker[] = [
     steps: [
       "Try the [removal link](https://nuwber.com/removal/link). On October 19, 2026 the domain name did not resolve.",
       "If it loads, submit the profile URL with an email you can open.",
-      "Click the confirmation email. If the site stays down, mark this Not listed and recheck later.",
+      "Click the confirmation email. If the site stays down, mark this Not listed and check again later.",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -380,12 +405,13 @@ export const BROKERS: Broker[] = [
     id: "addresses",
     name: "Addresses.com",
     category: "people-search",
-    blurb: "PeopleConnect address site. Use the shared suppression center.",
-    optOutUrl: "https://suppression.peopleconnect.us/login",
+    blurb: "PeopleConnect address site. One opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+    optOutUrl: PEOPLE_CONNECT_OPTOUT,
+    homeUrl: "https://www.addresses.com/",
     steps: [
-      "Addresses.com is part of PeopleConnect.",
-      "Open the [suppression center](https://suppression.peopleconnect.us/login) and confirm your email.",
-      "Suppress the listing for your name.",
+      "Open the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout).",
+      "One PeopleConnect opt-out covers Intelius, TruthFinder, Instant Checkmate, US Search, and Addresses.com.",
+      "Confirm your email, then suppress the listing for your name.",
       "You can also email [privacy@peopleconnect.us](mailto:privacy@peopleconnect.us) if the tool does not show your record.",
     ],
     difficulty: "medium",
@@ -393,28 +419,29 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: CHECKED,
+    lastVerified: RECHECKED,
     verification: "ok",
-    notes: "We opened the PeopleConnect suppression center. We did not find a separate Addresses.com form that loaded.",
+    notes: "The PeopleConnect suppression page loaded. One request covers the sister sites.",
   },
   {
     id: "acxiom",
     name: "Acxiom",
-    category: "people-search",
+    category: "marketing",
     blurb: "Marketing-data company. The form removes you from marketing products, not every people-search site.",
-    optOutUrl: "https://isapps.acxiom.com/optout/optout.aspx",
+    optOutUrl: "https://www.acxiom.com/optout/",
+    homeUrl: "https://www.acxiom.com/",
     steps: [
-      "Open the [consumer opt-out form](https://isapps.acxiom.com/optout/optout.aspx).",
+      "Open the [Acxiom opt-out form](https://www.acxiom.com/optout/).",
       "Enter your name and the mailing addresses you want removed.",
       "Add name variations if you have used more than one.",
-      "Instructions and a phone option (1-877-774-2094) are on the [instructions page](https://www.acxiom.com/privacy/us/consumer-instructions/).",
+      "If the form does not fit, use the [instructions page](https://www.acxiom.com/privacy/us/consumer-instructions/) or call 1-877-774-2094.",
     ],
     difficulty: "medium",
     requiresEmail: false,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: true,
-    lastVerified: CHECKED,
+    lastVerified: RECHECKED,
     verification: "ok",
   },
   {
@@ -446,7 +473,7 @@ export const BROKERS: Broker[] = [
     steps: [
       "Try the [opt-out link](https://www.publicdatausa.com/optout). On October 19, 2026 the domain name did not resolve.",
       "If it loads, search your name, select your records, and confirm the email.",
-      "If it does not load, mark Not listed and recheck in 90 days.",
+      "If it does not load, mark Not listed and check back later.",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -461,7 +488,7 @@ export const BROKERS: Broker[] = [
     id: "smartbackgroundchecks",
     name: "SmartBackgroundChecks",
     category: "people-search",
-    blurb: "Record removal form. They also list phone 800-571-0614.",
+    blurb: "Record removal form. They also list phone 800-571-0614. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.smartbackgroundchecks.com/optout",
     steps: [
       "Open the [opt-out page](https://www.smartbackgroundchecks.com/optout) and accept the terms.",
@@ -474,14 +501,16 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "ok",
+    notes: STATE_LIMITED_NOTE,
   },
   {
     id: "usphonebook",
     name: "USPhoneBook",
     category: "people-search",
-    blurb: "Phone and name listings. The removal page loads its form with a script.",
+    blurb: "Phone and name listings. The removal page loads its form with a script. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.usphonebook.com/removal",
     searchUrlTemplate: "https://www.usphonebook.com/{firstLower}-{lastLower}",
     phoneSearchUrl: "https://www.usphonebook.com/{phone}",
@@ -496,9 +525,10 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "ok",
-    notes: "The site sets this path as the removal address. The form itself is drawn by page script.",
+    notes: `The site sets this path as the removal address. The form itself is drawn by page script. ${STATE_LIMITED_NOTE}`,
   },
   {
     id: "zabasearch",
@@ -510,7 +540,7 @@ export const BROKERS: Broker[] = [
     steps: [
       "Open the [FAQ](https://www.zabasearch.com/faq/) and look for the question about blocking your information.",
       "Use the opt-out form on that [FAQ page](https://www.zabasearch.com/faq/) if you see one.",
-      "ZabaSearch says it is powered by Intelius. If you do not see a form, also suppress your name on [Intelius](https://www.intelius.com/opt-out).",
+      "ZabaSearch says it is powered by Intelius. If you do not see a form, use the [PeopleConnect opt-out](https://suppression.peopleconnect.us/optout). One request covers Intelius and its sister sites.",
       "We could not open a distinct form URL. Every address we tried returned the same block page.",
     ],
     difficulty: "medium",
@@ -526,7 +556,7 @@ export const BROKERS: Broker[] = [
     id: "advanced-background-checks",
     name: "Advanced Background Checks",
     category: "people-search",
-    blurb: "People search with a removal page.",
+    blurb: "People search with a removal page. Often limited to states with a consumer privacy law.",
     optOutUrl: "https://www.advancedbackgroundchecks.com/removal",
     steps: [
       "Open the [removal page](https://www.advancedbackgroundchecks.com/removal).",
@@ -538,8 +568,10 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
+    stateLimited: true,
     lastVerified: CHECKED,
     verification: "blocked",
+    notes: STATE_LIMITED_NOTE,
   },
   {
     id: "familytreenow",
@@ -600,9 +632,336 @@ export const BROKERS: Broker[] = [
     notes: "The page title was “Domain update — PeekYou.com”.",
   },
   {
+    id: "veripages",
+    name: "Veripages",
+    category: "people-search",
+    blurb: "People search with a removal form.",
+    optOutUrl: "https://veripages.com/inner/removal-service",
+    homeUrl: "https://veripages.com/",
+    steps: [
+      "Open the [removal form](https://veripages.com/inner/removal-service).",
+      "Search your name and open the listing that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: "The removal address answered our checker with a block page.",
+  },
+  {
+    id: "searchpeoplefree",
+    name: "SearchPeopleFree",
+    category: "people-search",
+    blurb: "People search with an opt-out form.",
+    optOutUrl: "https://www.searchpeoplefree.com/opt-out",
+    homeUrl: "https://www.searchpeoplefree.com/",
+    steps: [
+      "Open the [opt-out form](https://www.searchpeoplefree.com/opt-out).",
+      "Search your name and select the listing that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: "The opt-out address answered our checker with a block page.",
+  },
+  {
+    id: "usa-people-search",
+    name: "USA People Search",
+    category: "people-search",
+    blurb: "People search. The removal page starts with a short form.",
+    optOutUrl: "https://www.usa-people-search.com/removal",
+    homeUrl: "https://www.usa-people-search.com/",
+    steps: [
+      "Open the [removal form](https://www.usa-people-search.com/removal).",
+      "Search your name and open the listing that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "peoplesearchnow",
+    name: "PeopleSearchNow",
+    category: "people-search",
+    blurb: "People search with an opt-out form.",
+    optOutUrl: "https://www.peoplesearchnow.com/opt-out",
+    homeUrl: "https://www.peoplesearchnow.com/",
+    steps: [
+      "Open the [opt-out form](https://www.peoplesearchnow.com/opt-out).",
+      "Search your name and select the listing that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: "The opt-out address answered our checker with a block page.",
+  },
+  {
+    id: "fastbackgroundcheck",
+    name: "FastBackgroundCheck",
+    category: "people-search",
+    blurb: "Background-style people search. Often limited to states with a consumer privacy law.",
+    optOutUrl: "https://www.fastbackgroundcheck.com/opt-out",
+    homeUrl: "https://www.fastbackgroundcheck.com/",
+    steps: [
+      "Open the [opt-out form](https://www.fastbackgroundcheck.com/opt-out).",
+      "Search your name, city, and state, then open the record that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    stateLimited: true,
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: `The opt-out address answered our checker with a block page. ${STATE_LIMITED_NOTE}`,
+  },
+  {
+    id: "infotracer",
+    name: "InfoTracer",
+    category: "people-search",
+    blurb: "People search with an opt-out page.",
+    optOutUrl: "https://infotracer.com/optout",
+    homeUrl: "https://infotracer.com/",
+    steps: [
+      "Open the [opt-out page](https://infotracer.com/optout).",
+      "Search your name and select the listing that is you.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+    notes: "The opt-out page loaded. The site added a trailing slash.",
+  },
+  {
+    id: "neighborwho",
+    name: "NeighborWho",
+    category: "people-search",
+    blurb: "BeenVerified family site. The same BeenVerified opt-out covers NeighborWho.",
+    optOutUrl: "https://www.beenverified.com/app/optout/search",
+    homeUrl: "https://www.neighborwho.com/",
+    steps: [
+      "Open the [BeenVerified opt-out search](https://www.beenverified.com/app/optout/search). NeighborWho uses this same form.",
+      "Enter your first name, last name, and state, then choose the profile that is you.",
+      "Enter an email you can open and finish the captcha.",
+      "Click the confirmation link in the email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "blocked",
+    notes: "Shares BeenVerified's published opt-out. The checker was blocked. NeighborWho's own site loaded.",
+  },
+  {
+    id: "equifax-marketing",
+    name: "Equifax marketing",
+    category: "marketing",
+    blurb: "Opt out of Equifax marketing lists. This is not a credit freeze.",
+    optOutUrl: "https://myprivacy.equifax.com/opt-in-opt-out/personal-info",
+    homeUrl: "https://www.equifax.com/",
+    steps: [
+      "Open the [Equifax marketing opt-out](https://myprivacy.equifax.com/opt-in-opt-out/personal-info).",
+      "Enter your name and address. This form is for marketing mail, not a credit freeze.",
+      "Submit the form.",
+      "Watch for a confirmation email and use the link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "lexisnexis",
+    name: "LexisNexis",
+    category: "marketing",
+    blurb: "Opt out of LexisNexis Risk Solutions consumer reports used for marketing and people search.",
+    optOutUrl: "https://optout.lexisnexis.com/",
+    homeUrl: "https://www.lexisnexis.com/",
+    steps: [
+      "Open the [LexisNexis opt-out](https://optout.lexisnexis.com/).",
+      "Search your name and address and choose the records that are you.",
+      "Submit the request with an email you can open.",
+      "Click the confirmation link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+    notes: "The address redirects to the LexisNexis Risk Solutions consumer opt-out.",
+  },
+  {
+    id: "data-axle",
+    name: "Data Axle",
+    category: "marketing",
+    blurb: "Marketing-data company. Ask them to stop using your information.",
+    optOutUrl: "https://www.data-axle.com/privacy-rights-request/",
+    homeUrl: "https://www.data-axle.com/",
+    steps: [
+      "Open the [privacy rights request](https://www.data-axle.com/privacy-rights-request/).",
+      "Enter your name and mailing address and ask them to delete your information.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "epsilon",
+    name: "Epsilon",
+    category: "marketing",
+    blurb: "Marketing-data company. Use the privacy request form.",
+    optOutUrl: "https://legal.epsilon.com/dsr/",
+    homeUrl: "https://www.epsilon.com/",
+    steps: [
+      "Open the [Epsilon privacy request](https://legal.epsilon.com/dsr/).",
+      "Enter your name and contact details and ask them to delete your information.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "experian-marketing",
+    name: "Experian marketing",
+    category: "marketing",
+    blurb: "Opt out of Experian marketing. This is not a credit freeze.",
+    optOutUrl: "https://www.experian.com/privacy/opting_out",
+    homeUrl: "https://www.experian.com/",
+    steps: [
+      "Open the [Experian marketing opt-out](https://www.experian.com/privacy/opting_out).",
+      "Follow the form for marketing offers. This does not freeze your credit.",
+      "Submit your name and address.",
+      "Watch for a confirmation email and use the link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "corelogic",
+    name: "CoreLogic",
+    category: "marketing",
+    blurb: "Property-data company, now called Cotality. The old privacy-center link did not load.",
+    optOutUrl: "https://www.corelogic.com/privacy-center/",
+    homeUrl: "https://www.cotality.com/",
+    steps: [
+      "Try the [privacy center](https://www.corelogic.com/privacy-center/). On October 22, 2026 it redirected to a missing page.",
+      "CoreLogic now uses the name Cotality. Open the [Cotality privacy policy](https://www.cotality.com/legal/privacy-policy).",
+      "Email [privacy@cotality.com](mailto:privacy@cotality.com) and ask them to delete your information from marketing files.",
+      "Watch for a confirmation email and follow the link if they send one.",
+    ],
+    difficulty: "hard",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    linkNotVerified: true,
+    lastVerified: null,
+    verification: "failed",
+    notes:
+      "https://www.corelogic.com/privacy-center/ redirected to https://www.cotality.com/privacy-center and returned 404 on 2026-10-22. Use the Cotality privacy policy and privacy@cotality.com.",
+  },
+  {
+    id: "deep-sync",
+    name: "Deep Sync",
+    category: "marketing",
+    blurb: "Marketing-data company. Use the privacy request page.",
+    optOutUrl: "https://deepsync.com/privacy-request",
+    homeUrl: "https://deepsync.com/",
+    steps: [
+      "Open the [Deep Sync privacy request](https://deepsync.com/privacy-request).",
+      "Enter your name and contact details and ask them to delete your information.",
+      "Submit the form with an email you can open.",
+      "Click the confirmation link if they send one.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
+    id: "google-results-about-you",
+    name: "Google Results about you",
+    category: "search",
+    blurb: "Ask Google to remove search results that show your personal contact details.",
+    optOutUrl: "https://myactivity.google.com/results-about-you",
+    homeUrl: "https://www.google.com/",
+    searchUrlTemplate: "https://www.google.com/search?q={first}+{last}+{city}+{state}",
+    steps: [
+      "Open [Results about you](https://myactivity.google.com/results-about-you) and sign in to the Google account you use.",
+      "Search your name, then review results that show your phone, address, or email.",
+      "Request removal for the results that are your personal contact details.",
+      "Watch your email for a confirmation and follow the link if Google sends one.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: RECHECKED,
+    verification: "ok",
+  },
+  {
     id: "do-not-call",
     name: "National Do Not Call Registry",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Official registry that tells many sales callers to stop ringing you.",
     optOutUrl: "https://www.donotcall.gov/",
     steps: [
@@ -621,7 +980,7 @@ export const BROKERS: Broker[] = [
   {
     id: "ftc-unwanted-calls",
     name: "Report unwanted calls to the FTC",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Tell the Federal Trade Commission about scam or unwanted calls.",
     optOutUrl: "https://reportfraud.ftc.gov/",
     steps: [
@@ -640,7 +999,7 @@ export const BROKERS: Broker[] = [
   {
     id: "fcc-complaint",
     name: "FCC unwanted-call complaint",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "File a complaint with the Federal Communications Commission about robocalls or spoofed caller ID.",
     optOutUrl: "https://consumercomplaints.fcc.gov/",
     steps: [
@@ -659,12 +1018,13 @@ export const BROKERS: Broker[] = [
   {
     id: "optoutprescreen",
     name: "OptOutPrescreen",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Official opt-out for firm offers of credit and insurance, run for the credit bureaus.",
     optOutUrl: "https://www.optoutprescreen.com/",
     steps: [
       "Open [OptOutPrescreen](https://www.optoutprescreen.com/).",
       "Pick the online opt-out (it lasts about five years) or the mail opt-out if you want it to last longer.",
+      "You can also opt out by phone at 1-888-567-8688.",
       "This stops many prescreened credit and insurance offers. It does not remove people-search listings.",
     ],
     difficulty: "medium",
@@ -674,18 +1034,18 @@ export const BROKERS: Broker[] = [
     letterRecommended: false,
     lastVerified: CHECKED,
     verification: "blocked",
-    notes: "The domain is the official bureau opt-out and resolves through Akamai. The page blocked our checker.",
+    notes: "The domain is the official bureau opt-out and resolves through Akamai. The page blocked our checker. Phone option: 1-888-567-8688.",
   },
   {
     id: "dmachoice",
     name: "DMAchoice",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Opt out of many kinds of commercial mail through the Data & Marketing Association.",
     optOutUrl: "https://www.dmachoice.org/",
     steps: [
       "Open [DMAchoice](https://www.dmachoice.org/) and register.",
       "Choose the mail you do not want, such as credit offers and catalogs.",
-      "The site may charge a small registration fee. Mail already in the pipeline can still arrive.",
+      "DMAchoice charges a small fee (about $6). Mail already in the pipeline can still arrive.",
     ],
     difficulty: "medium",
     requiresEmail: true,
@@ -694,11 +1054,12 @@ export const BROKERS: Broker[] = [
     letterRecommended: false,
     lastVerified: CHECKED,
     verification: "ok",
+    notes: "Registration costs about $6.",
   },
   {
     id: "tmobile-scam-shield",
     name: "T-Mobile Scam Shield",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Free scam labeling and blocking for T-Mobile customers.",
     optOutUrl: "https://www.t-mobile.com/benefits/scam-shield",
     steps: [
@@ -717,7 +1078,7 @@ export const BROKERS: Broker[] = [
   {
     id: "verizon-call-filter",
     name: "Verizon Call Filter",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Free spam-call screening for Verizon customers.",
     optOutUrl: "https://www.verizon.com/solutions-and-services/call-filter/",
     steps: [
@@ -736,7 +1097,7 @@ export const BROKERS: Broker[] = [
   {
     id: "att-activearmor",
     name: "AT&T ActiveArmor",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Free spam-call controls for AT&T wireless customers.",
     optOutUrl: "https://www.att.com/support/article/wireless/KM1147710/",
     steps: [
@@ -755,7 +1116,7 @@ export const BROKERS: Broker[] = [
   {
     id: "iphone-silence-unknown",
     name: "iPhone: silence unknown callers",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Send calls from numbers you have not saved straight to voicemail.",
     optOutUrl: "https://support.apple.com/en-us/111106",
     steps: [
@@ -775,7 +1136,7 @@ export const BROKERS: Broker[] = [
   {
     id: "android-spam-protection",
     name: "Android: caller ID and spam protection",
-    category: "calls-and-junk",
+    category: "spam",
     blurb: "Use the Phone app's built-in spam filter. Menus differ by phone brand.",
     optOutUrl: "https://support.google.com/phoneapp/answer/3459196?hl=en",
     steps: [
@@ -794,10 +1155,10 @@ export const BROKERS: Broker[] = [
   },
 ];
 
-/** Official call registry and complaint forms. Shown on Spam Calls & Mail. */
+/** Call registry and complaint forms. They are cards in the Spam Calls & Junk Mail filter. */
 export const SPAM_CALL_IDS = ["do-not-call", "ftc-unwanted-calls", "fcc-complaint"] as const;
 
-/** Mail opt-outs, carrier tools, and phone settings. Shown on Additional Resources. */
+/** Mail opt-outs, carrier tools, and phone settings. Same Spam Calls & Junk Mail filter. */
 export const RESOURCE_IDS = [
   "dmachoice",
   "optoutprescreen",
@@ -808,6 +1169,45 @@ export const RESOURCE_IDS = [
   "android-spam-protection",
 ] as const;
 
+export const STATE_LIMITED_IDS = [
+  "fastpeoplesearch",
+  "truepeoplesearch",
+  "peoplefinders",
+  "usphonebook",
+  "fastbackgroundcheck",
+  "advanced-background-checks",
+  "smartbackgroundchecks",
+] as const;
+
+export const TOOL_FILTERS = ["all", "people-search", "spam", "marketing", "search"] as const;
+export type ToolFilter = (typeof TOOL_FILTERS)[number];
+
+const FILTER_ALIASES: Record<string, ToolFilter> = {
+  all: "all",
+  people: "people-search",
+  "people-search": "people-search",
+  spam: "spam",
+  "calls-and-junk": "spam",
+  mail: "spam",
+  resources: "spam",
+  marketing: "marketing",
+  search: "search",
+  "search-engines": "search",
+};
+
+export function parseToolFilter(value: string | null | undefined): ToolFilter {
+  if (!value) return "all";
+  return FILTER_ALIASES[value.trim().toLowerCase()] ?? "all";
+}
+
+export const FILTER_LABELS: Record<ToolFilter, string> = {
+  all: "All",
+  "people-search": "People-Search Sites",
+  spam: "Spam Calls & Junk Mail",
+  marketing: "Marketing Data Brokers",
+  search: "Search Engines",
+};
+
 export function brokersByIds(ids: readonly string[]): Broker[] {
   return ids.flatMap((id) => {
     const broker = BROKERS.find((item) => item.id === id);
@@ -817,6 +1217,15 @@ export function brokersByIds(ids: readonly string[]): Broker[] {
 
 export function brokersByCategory(category: Category): Broker[] {
   return BROKERS.filter((broker) => broker.category === category);
+}
+
+/** People-search and marketing sites can take a written request. Spam tools and search engines do not. */
+export function acceptsLetter(broker: Broker): boolean {
+  return broker.category === "people-search" || broker.category === "marketing";
+}
+
+export function letterBrokers(): Broker[] {
+  return BROKERS.filter(acceptsLetter);
 }
 
 export function findBroker(id: string): Broker | undefined {

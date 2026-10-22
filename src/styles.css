@@ -233,10 +233,24 @@ button:disabled { opacity: 0.55; cursor: not-allowed; }
   font-size: 0.9rem;
 }
 
+.field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  min-width: 0;
+}
+
+.field .copy-button {
+  align-self: flex-start;
+  max-width: 100%;
+}
+
 .form-grid {
   display: grid;
-  gap: 12px;
+  gap: 16px 12px;
   grid-template-columns: 1fr;
+  align-items: start;
 }
 
 @media (min-width: 720px) {
@@ -285,8 +299,125 @@ textarea { min-height: 88px; resize: vertical; }
 .bar span {
   display: block;
   height: 100%;
+  width: 0;
   background: var(--accent);
 }
+
+.progress-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+  margin-top: 2rem;
+}
+
+.progress-actions .hint { margin: 0; }
+
+.card-actions { margin-top: 4px; }
+
+/* Widths live in the stylesheet so Content-Security-Policy can stay script-and-style self only. */
+.bar span[data-n="0"] { width: 0%; }
+.bar span[data-n="1"] { width: 1%; }
+.bar span[data-n="2"] { width: 2%; }
+.bar span[data-n="3"] { width: 3%; }
+.bar span[data-n="4"] { width: 4%; }
+.bar span[data-n="5"] { width: 5%; }
+.bar span[data-n="6"] { width: 6%; }
+.bar span[data-n="7"] { width: 7%; }
+.bar span[data-n="8"] { width: 8%; }
+.bar span[data-n="9"] { width: 9%; }
+.bar span[data-n="10"] { width: 10%; }
+.bar span[data-n="11"] { width: 11%; }
+.bar span[data-n="12"] { width: 12%; }
+.bar span[data-n="13"] { width: 13%; }
+.bar span[data-n="14"] { width: 14%; }
+.bar span[data-n="15"] { width: 15%; }
+.bar span[data-n="16"] { width: 16%; }
+.bar span[data-n="17"] { width: 17%; }
+.bar span[data-n="18"] { width: 18%; }
+.bar span[data-n="19"] { width: 19%; }
+.bar span[data-n="20"] { width: 20%; }
+.bar span[data-n="21"] { width: 21%; }
+.bar span[data-n="22"] { width: 22%; }
+.bar span[data-n="23"] { width: 23%; }
+.bar span[data-n="24"] { width: 24%; }
+.bar span[data-n="25"] { width: 25%; }
+.bar span[data-n="26"] { width: 26%; }
+.bar span[data-n="27"] { width: 27%; }
+.bar span[data-n="28"] { width: 28%; }
+.bar span[data-n="29"] { width: 29%; }
+.bar span[data-n="30"] { width: 30%; }
+.bar span[data-n="31"] { width: 31%; }
+.bar span[data-n="32"] { width: 32%; }
+.bar span[data-n="33"] { width: 33%; }
+.bar span[data-n="34"] { width: 34%; }
+.bar span[data-n="35"] { width: 35%; }
+.bar span[data-n="36"] { width: 36%; }
+.bar span[data-n="37"] { width: 37%; }
+.bar span[data-n="38"] { width: 38%; }
+.bar span[data-n="39"] { width: 39%; }
+.bar span[data-n="40"] { width: 40%; }
+.bar span[data-n="41"] { width: 41%; }
+.bar span[data-n="42"] { width: 42%; }
+.bar span[data-n="43"] { width: 43%; }
+.bar span[data-n="44"] { width: 44%; }
+.bar span[data-n="45"] { width: 45%; }
+.bar span[data-n="46"] { width: 46%; }
+.bar span[data-n="47"] { width: 47%; }
+.bar span[data-n="48"] { width: 48%; }
+.bar span[data-n="49"] { width: 49%; }
+.bar span[data-n="50"] { width: 50%; }
+.bar span[data-n="51"] { width: 51%; }
+.bar span[data-n="52"] { width: 52%; }
+.bar span[data-n="53"] { width: 53%; }
+.bar span[data-n="54"] { width: 54%; }
+.bar span[data-n="55"] { width: 55%; }
+.bar span[data-n="56"] { width: 56%; }
+.bar span[data-n="57"] { width: 57%; }
+.bar span[data-n="58"] { width: 58%; }
+.bar span[data-n="59"] { width: 59%; }
+.bar span[data-n="60"] { width: 60%; }
+.bar span[data-n="61"] { width: 61%; }
+.bar span[data-n="62"] { width: 62%; }
+.bar span[data-n="63"] { width: 63%; }
+.bar span[data-n="64"] { width: 64%; }
+.bar span[data-n="65"] { width: 65%; }
+.bar span[data-n="66"] { width: 66%; }
+.bar span[data-n="67"] { width: 67%; }
+.bar span[data-n="68"] { width: 68%; }
+.bar span[data-n="69"] { width: 69%; }
+.bar span[data-n="70"] { width: 70%; }
+.bar span[data-n="71"] { width: 71%; }
+.bar span[data-n="72"] { width: 72%; }
+.bar span[data-n="73"] { width: 73%; }
+.bar span[data-n="74"] { width: 74%; }
+.bar span[data-n="75"] { width: 75%; }
+.bar span[data-n="76"] { width: 76%; }
+.bar span[data-n="77"] { width: 77%; }
+.bar span[data-n="78"] { width: 78%; }
+.bar span[data-n="79"] { width: 79%; }
+.bar span[data-n="80"] { width: 80%; }
+.bar span[data-n="81"] { width: 81%; }
+.bar span[data-n="82"] { width: 82%; }
+.bar span[data-n="83"] { width: 83%; }
+.bar span[data-n="84"] { width: 84%; }
+.bar span[data-n="85"] { width: 85%; }
+.bar span[data-n="86"] { width: 86%; }
+.bar span[data-n="87"] { width: 87%; }
+.bar span[data-n="88"] { width: 88%; }
+.bar span[data-n="89"] { width: 89%; }
+.bar span[data-n="90"] { width: 90%; }
+.bar span[data-n="91"] { width: 91%; }
+.bar span[data-n="92"] { width: 92%; }
+.bar span[data-n="93"] { width: 93%; }
+.bar span[data-n="94"] { width: 94%; }
+.bar span[data-n="95"] { width: 95%; }
+.bar span[data-n="96"] { width: 96%; }
+.bar span[data-n="97"] { width: 97%; }
+.bar span[data-n="98"] { width: 98%; }
+.bar span[data-n="99"] { width: 99%; }
+.bar span[data-n="100"] { width: 100%; }
+
 
 .notice {
   background: var(--warn-bg);

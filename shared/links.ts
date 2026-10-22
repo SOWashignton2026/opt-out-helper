@@ -1,6 +1,17 @@
 import { stateName } from "./states";
 import type { Profile } from "./progress";
 
+/**
+ * Free Privacy Bot template on Grok. Empty string hides the button and shows
+ * "Template link coming soon".
+ */
+export const PRIVACY_BOT_TEMPLATE_URL = "https://x.ai/bot/m8LgFBTwlCWHQvVMy77z_";
+
+export function privacyBotTemplateHref(url: string = PRIVACY_BOT_TEMPLATE_URL): string | null {
+  const trimmed = url.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
 function titleSlug(value: string): string {
   return value
     .trim()
@@ -63,4 +74,28 @@ export function buildSearchUrl(template: string, profile: Profile): string | nul
   }
   if (url.includes("{")) return null;
   return url;
+}
+
+type SearchTarget = {
+  optOutUrl: string;
+  searchUrlTemplate?: string;
+  homeUrl?: string;
+};
+
+/**
+ * Search link for a card. Uses a prefilled search when the site's address
+ * pattern and the saved name, city, and state allow it. Otherwise the site's
+ * homepage or search page, with nothing filled in.
+ */
+export function searchMeHref(target: SearchTarget, profile: Profile): string {
+  if (target.searchUrlTemplate) {
+    const built = buildSearchUrl(target.searchUrlTemplate, profile);
+    if (built) return built;
+  }
+  if (target.homeUrl) return target.homeUrl;
+  try {
+    return `${new URL(target.optOutUrl).origin}/`;
+  } catch {
+    return target.optOutUrl;
+  }
 }

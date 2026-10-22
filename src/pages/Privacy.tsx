@@ -3,6 +3,10 @@ export function PrivacyPage() {
     <div className="stack prose">
       <h1>Privacy</h1>
       <p>This site is built so your personal details stay on your device.</p>
+      <p>
+        This site sets one necessary cookie. It only counts the 10 free letters per day. There is
+        no tracking, no ads, and no analytics. Find me data stays in this browser.
+      </p>
 
       <section>
         <h2>What stays in your browser</h2>

@@ -1,3 +1,10 @@
+import { PRIVACY_LAWS, PRIVACY_LAWS_CHECKED } from "../../shared/privacy-laws";
+import { US_STATES } from "../../shared/states";
+
+function lawStateName(code: string): string {
+  return US_STATES.find((state) => state.code === code)?.name ?? code;
+}
+
 export function FaqPage() {
   return (
     <div className="stack prose">
@@ -25,8 +32,8 @@ export function FaqPage() {
         <h2>Why does a listing come back?</h2>
         <p>
           Brokers buy fresh copies of the same public records. A removal is often a flag on their
-          copy, not a change to the courthouse or county file. Check again about every 90 days. The
-          Privacy Tool will remind you inside the app. It will not email you.
+          copy, not a change to the courthouse or county file. Check the site again later. This
+          site does not email you a reminder.
         </p>
       </section>
 
@@ -37,7 +44,41 @@ export function FaqPage() {
           <li>Do not pay the people-search site to “remove” you. The removal form is free.</li>
           <li>Save the confirmation email or a screenshot, then mark the row Submitted.</li>
           <li>Start with Spokeo, BeenVerified, Whitepages, and the PeopleConnect sites. They show up most often.</li>
-          <li>After a site says you are removed, mark it Removed. The app will flag it again in 90 days.</li>
+          <li>After a site says you are removed, mark it Removed so you can see it in your progress.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Why do some sites refuse to remove me?</h2>
+        <p>
+          Some people-search sites only honor a removal when you live in a state with a consumer
+          privacy law. FastPeopleSearch, TruePeopleSearch, PeopleFinders, and USPhoneBook are part
+          of one network that works this way. FastBackgroundCheck, Advanced Background Checks, and
+          SmartBackgroundChecks are marked the same way on their cards. If you live in another
+          state, such as Washington, they may refuse you.
+        </p>
+        <p>
+          They decide by the state you enter, the address on your listing, and sometimes the IP
+          address of the connection you are using. Do not claim to live in another state.
+        </p>
+        <p>
+          This site only names a state privacy law when it is on the list checked {PRIVACY_LAWS_CHECKED}.
+          Those states are {PRIVACY_LAWS.map((law) => lawStateName(law.state)).join(", ")}. The laws
+          on that list are:
+        </p>
+        <ul>
+          {PRIVACY_LAWS.map((law) => (
+            <li key={law.state}>
+              {lawStateName(law.state)}: {law.name}
+            </li>
+          ))}
+        </ul>
+        <p>If a site refuses you:</p>
+        <ul>
+          <li>Try that site’s general opt-out form anyway.</li>
+          <li>Use Google Results about you. It is under Search Engines in the Privacy Tool.</li>
+          <li>Send a letter when the card offers Write a letter.</li>
+          <li>Check the site again later. Forms and rules change.</li>
         </ul>
       </section>
 
