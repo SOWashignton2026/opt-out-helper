@@ -5,6 +5,7 @@ import { validateLetterRequest, type LetterType } from "../../shared/letter";
 import { privacyLawFor } from "../../shared/privacy-laws";
 import { buildTemplateLetter } from "../../shared/templates";
 import { US_STATES } from "../../shared/states";
+import { CLEAR_DATA_CONFIRM, SHARED_COMPUTER_TIP } from "../../shared/progress";
 import { useSavedData } from "../lib/storage";
 
 const TYPES: { value: LetterType; label: string; help: string }[] = [
@@ -38,7 +39,7 @@ export function LettersPage() {
   const recommended = useMemo(() => sites.filter((site) => site.letterRecommended), [sites]);
   const [params] = useSearchParams();
   const requestedId = params.get("broker") ?? "";
-  const { data, updateProfile } = useSavedData();
+  const { data, updateProfile, clearAll } = useSavedData();
   const [showAll, setShowAll] = useState(() => {
     const requested = sites.find((site) => site.id === requestedId);
     return Boolean(requested && !requested.letterRecommended);
@@ -93,6 +94,15 @@ export function LettersPage() {
       },
       broker.name,
     );
+  }
+
+  function onClear() {
+    const ok = window.confirm(CLEAR_DATA_CONFIRM);
+    if (!ok) return;
+    clearAll();
+    setNotes("");
+    setLetter("");
+    setStatus("Cleared the data saved in this browser.");
   }
 
   function useTemplate() {
@@ -302,6 +312,12 @@ export function LettersPage() {
           <button type="button" className="button button-quiet" onClick={useTemplate}>
             Use the template instead
           </button>
+        </div>
+        <div className="row clear-row">
+          <button type="button" className="button button-danger" onClick={onClear}>
+            Clear my data
+          </button>
+          <p className="hint">{SHARED_COMPUTER_TIP}</p>
         </div>
         {status ? (
           <p role="status" className="notice">

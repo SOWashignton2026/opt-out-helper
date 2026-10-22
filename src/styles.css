@@ -124,6 +124,9 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
   background: var(--accent-soft);
   border-color: #cfe6df;
   padding: 14px 16px;
+  text-align: center;
+  width: min(68ch, 100%);
+  justify-self: center;
 }
 
 .about h2 {
@@ -132,17 +135,11 @@ h3 { margin: 0 0 4px; font-size: 1.05rem; }
 }
 
 .about p {
-  margin: 0 0 8px;
+  margin: 0 auto 8px;
   max-width: 68ch;
 }
 
-.social { gap: 8px; }
-
-.social-icon {
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-}
+.about p:last-child { margin-bottom: 0; }
 
 .steps {
   list-style: none;
@@ -311,7 +308,7 @@ textarea { min-height: 88px; resize: vertical; }
   margin-top: 2rem;
 }
 
-.progress-actions .hint { margin: 0; }
+.progress-actions .hint, .clear-row .hint { margin: 0; }
 
 .card-actions { margin-top: 4px; }
 

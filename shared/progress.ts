@@ -1,4 +1,7 @@
 export const STORAGE_KEY = "privacy-defender.v1";
+export const CLEAR_DATA_CONFIRM =
+  "Erase your name and progress from this browser? This does not reset today’s AI letter count.";
+export const SHARED_COMPUTER_TIP = "On a shared computer, clear your data when you're done.";
 export const LEGACY_STORAGE_KEY = "opt-out-helper.v1";
 
 export type Status = "not_started" | "submitted" | "removed" | "not_listed";

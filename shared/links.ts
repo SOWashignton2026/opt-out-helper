@@ -82,11 +82,12 @@ type SearchTarget = {
   homeUrl?: string;
 };
 
-/**
- * Search link for a card. Uses a prefilled search when the site's address
- * pattern and the saved name, city, and state allow it. Otherwise the site's
- * homepage or search page, with nothing filled in.
- */
+/** A working lookup link, only when the site publishes a search address. */
+export function selfSearchUrl(target: SearchTarget, profile: Profile): string | null {
+  if (!target.searchUrlTemplate) return null;
+  return buildSearchUrl(target.searchUrlTemplate, profile);
+}
+
 export function searchMeHref(target: SearchTarget, profile: Profile): string {
   if (target.searchUrlTemplate) {
     const built = buildSearchUrl(target.searchUrlTemplate, profile);

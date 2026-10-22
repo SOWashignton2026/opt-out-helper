@@ -8,12 +8,17 @@ import {
   type Broker,
   type ToolFilter,
 } from "../../shared/brokers";
-import { buildSearchUrl, searchMeHref } from "../../shared/links";
-import { type SavedData, type Status } from "../../shared/progress";
+import { buildSearchUrl, selfSearchUrl } from "../../shared/links";
+import { CLEAR_DATA_CONFIRM, SHARED_COMPUTER_TIP, type SavedData, type Status } from "../../shared/progress";
+import { PRIVACY_LAWS } from "../../shared/privacy-laws";
 import { US_STATES } from "../../shared/states";
 import { OptOutButton } from "../components/OptOutButton";
 import { StepList } from "../components/StepList";
 import { useSavedData } from "../lib/storage";
+
+const LIMITED_STATE_NAMES = PRIVACY_LAWS.map(
+  (law) => US_STATES.find((state) => state.code === law.state)?.name ?? law.state,
+).join(", ");
 
 const STATUS_OPTIONS: { value: Status; label: string }[] = [
   { value: "not_started", label: "Not started" },
@@ -70,9 +75,7 @@ export function PrivacyToolPage() {
   }
 
   function onClear() {
-    const ok = window.confirm(
-      "Erase your name and progress from this browser? This does not reset today’s AI letter count.",
-    );
+    const ok = window.confirm(CLEAR_DATA_CONFIRM);
     if (!ok) return;
     clearAll();
     setMessage("Cleared the data saved in this browser.");
@@ -110,7 +113,7 @@ export function PrivacyToolPage() {
           <button type="button" className="button button-danger" onClick={onClear}>
             Clear all my data
           </button>
-          <p className="hint">On a shared computer, clear your data when you're done.</p>
+          <p className="hint">{SHARED_COMPUTER_TIP}</p>
         </div>
         {message ? (
           <p role="status" className="hint">
@@ -297,7 +300,7 @@ function BrokerCard({
   profile: SavedData["profile"];
   onStatus: (status: Status) => void;
 }) {
-  const search = searchMeHref(broker, profile);
+  const search = selfSearchUrl(broker, profile);
   const phone = broker.phoneSearchUrl ? buildSearchUrl(broker.phoneSearchUrl, profile) : null;
 
   return (
@@ -313,26 +316,33 @@ function BrokerCard({
         </div>
       </header>
       <p>{broker.blurb}</p>
+      {broker.stateLimited ? (
+        <p className="hint">Often only available if you live in {LIMITED_STATE_NAMES}.</p>
+      ) : null}
       <ul className="needs">
         {broker.requiresEmail ? <li>Needs an email</li> : null}
         {broker.requiresId ? <li>May ask for an ID</li> : null}
         {broker.requiresPhone ? <li>May ask for a phone number</li> : null}
       </ul>
-      <div className="row">
-        <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">
-          Search me
-        </a>
-        {broker.phoneSearchUrl ? (
-          <a
-            className="button button-quiet"
-            href={phone ?? broker.phoneSearchUrl.split("{")[0]}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Phone lookup
-          </a>
-        ) : null}
-      </div>
+      {search || broker.phoneSearchUrl ? (
+        <div className="row">
+          {search ? (
+            <a className="button button-quiet" href={search} target="_blank" rel="noopener noreferrer">
+              Search me
+            </a>
+          ) : null}
+          {broker.phoneSearchUrl ? (
+            <a
+              className="button button-quiet"
+              href={phone ?? broker.phoneSearchUrl.split("{")[0]}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Phone lookup
+            </a>
+          ) : null}
+        </div>
+      ) : null}
       <StepList steps={broker.steps} />
       <div className="row card-actions">
         <OptOutButton broker={broker} />

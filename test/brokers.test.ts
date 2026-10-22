@@ -9,7 +9,7 @@ import {
   parseToolFilter,
   type Broker,
 } from "../shared/brokers";
-import { PRIVACY_BOT_TEMPLATE_URL, buildSearchUrl, privacyBotTemplateHref, searchMeHref } from "../shared/links";
+import { PRIVACY_BOT_TEMPLATE_URL, buildSearchUrl, privacyBotTemplateHref, searchMeHref, selfSearchUrl } from "../shared/links";
 import { parseSavedData, type Profile } from "../shared/progress";
 import { parseStep, stepHrefs } from "../shared/steps";
 
@@ -92,15 +92,13 @@ describe("broker list", () => {
     const failed = BROKERS.filter((broker) => broker.verification === "failed").map((broker) => broker.id);
     expect(failed.sort()).toEqual([
       "clustrmaps",
-      "corelogic",
       "nuwber",
       "peekyou",
       "publicdatausa",
       "radaris",
       "zabasearch",
     ]);
-    const notYet = BROKERS.filter((broker) => broker.linkNotVerified).map((broker) => broker.id);
-    expect(notYet).toEqual(["corelogic"]);
+    expect(BROKERS.filter((broker) => broker.linkNotVerified)).toEqual([]);
   });
 
   it("links every named form or page, including Spokeo's opt-out form", () => {
@@ -172,6 +170,91 @@ describe("broker list", () => {
     expect(limited.slice().sort()).toEqual([...STATE_LIMITED_IDS].slice().sort());
     expect(BROKERS.find((broker) => broker.id === "google-results-about-you")?.category).toBe("search");
     expect(BROKERS.find((broker) => broker.id === "equifax-marketing")?.category).toBe("marketing");
+    expect(BROKERS.find((broker) => broker.id === "corelogic")?.optOutUrl).toBe(
+      "https://www.cotality.com/legal/privacy-policy",
+    );
+    expect(BROKERS.find((broker) => broker.id === "corelogic")?.steps.join(" ")).toContain("privacy@cotality.com");
+  });
+
+  it("shows a search link only when the site has a real lookup address", () => {
+    const hidden = [
+      "google-results-about-you",
+      "acxiom",
+      "equifax-marketing",
+      "lexisnexis",
+      "data-axle",
+      "epsilon",
+      "experian-marketing",
+      "corelogic",
+      "deep-sync",
+      "do-not-call",
+      "ftc-unwanted-calls",
+      "fcc-complaint",
+      "optoutprescreen",
+      "dmachoice",
+      "tmobile-scam-shield",
+      "verizon-call-filter",
+      "att-activearmor",
+      "iphone-silence-unknown",
+      "android-spam-protection",
+      "pipl",
+      "people-data-labs",
+      "transunion-marketing",
+      "porch-group-media",
+      "l2",
+      "ufind",
+      "privatenumberchecker",
+      "realeflow",
+      "amerilist",
+      "versium",
+      "atdata",
+      "statsocial",
+      "valassis",
+      "apollo",
+      "uplead",
+      "propertyreach",
+    ];
+    for (const id of hidden) {
+      const broker = BROKERS.find((item) => item.id === id);
+      expect(broker, id).toBeTruthy();
+      expect(selfSearchUrl(broker ?? { optOutUrl: "https://example.com/" }, profile), id).toBeNull();
+    }
+    const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
+    expect(selfSearchUrl(spokeo ?? { optOutUrl: "https://example.com/" }, profile)).toContain("spokeo.com");
+    const bug = BROKERS.find((broker) => broker.id === "searchbug");
+    expect(selfSearchUrl(bug ?? { optOutUrl: "https://example.com/" }, profile)).toBe(
+      "https://www.searchbug.com/peoplefinder/",
+    );
+    expect(bug?.category).toBe("people-search");
+    expect(BROKERS.find((broker) => broker.id === "pipl")?.category).toBe("people-search");
+    for (const id of ["people-data-labs", "transunion-marketing", "porch-group-media", "l2"]) {
+      expect(BROKERS.find((broker) => broker.id === id)?.category).toBe("marketing");
+    }
+    expect(BROKERS.find((broker) => broker.id === "transunion-marketing")?.steps.join(" ")).toContain("866-310-8783");
+    const withSearch = [
+      "searchbug",
+      "sync-me",
+      "spydialer",
+      "privatereports",
+      "peoplesearcher",
+      "weinform",
+      "truthrecord",
+      "courtrecords-us",
+      "recordsfinder",
+      "staterecords",
+      "searchquarry",
+      "propertychecker",
+      "courtcasefinder",
+    ];
+    for (const id of withSearch) {
+      expect(selfSearchUrl(BROKERS.find((broker) => broker.id === id) ?? { optOutUrl: "https://example.com/" }, profile), id).toMatch(/^https:\/\//);
+    }
+    expect(BROKERS.find((broker) => broker.id === "sync-me")?.steps.join(" ")).toContain("Daniel's Law");
+    expect(BROKERS.find((broker) => broker.id === "valassis")?.category).toBe("spam");
+    for (const id of ["courtrecords-us", "recordsfinder", "staterecords", "searchquarry", "propertychecker", "courtcasefinder"]) {
+      expect(BROKERS.find((broker) => broker.id === id)?.stateLimited).toBe(true);
+    }
+    expect(BROKERS.some((broker) => broker.id === "stirista" || broker.name.startsWith("DROPPED"))).toBe(false);
   });
 
   it("reads the Privacy Tool filter from the address", () => {
