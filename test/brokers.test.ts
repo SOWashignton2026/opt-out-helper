@@ -109,14 +109,15 @@ describe("broker list", () => {
     const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
     const spokeoStep = spokeo?.steps.find((step) => step.includes("opt-out form")) ?? "";
     expect(parseStep(spokeoStep)).toEqual([
-      { kind: "text", text: "Paste it into the " },
-      { kind: "link", text: "opt-out form", href: "https://www.spokeo.com/optout" },
-      { kind: "text", text: " with an email you can open." },
+      { kind: "text", text: "Paste it into the opt-out form with an email you can open." },
     ]);
+    const mylife = BROKERS.find((broker) => broker.id === "mylife");
+    const help = mylife?.steps.find((step) => step.includes("help page")) ?? "";
+    expect(stepHrefs(help)).toEqual(["https://www.mylife.com/help"]);
 
     for (const broker of BROKERS) {
       const hrefs = broker.steps.flatMap(stepHrefs);
-      expect(hrefs, broker.id).toContain(broker.optOutUrl);
+      expect(hrefs, broker.id).not.toContain(broker.optOutUrl);
       for (const step of broker.steps) {
         const leftover = step.replace(/\[[^\]]+\]\((?:https?:\/\/|mailto:)[^)]+\)/g, "");
         expect(leftover, `${broker.id}: ${step}`).not.toMatch(/https?:\/\/|mailto:/);
@@ -220,7 +221,6 @@ describe("broker list", () => {
       "transunion-marketing",
       "porch-group-media",
       "l2",
-      "ufind",
       "privatenumberchecker",
       "realeflow",
       "amerilist",
@@ -268,6 +268,23 @@ describe("broker list", () => {
       expect(selfSearchUrl(BROKERS.find((broker) => broker.id === id) ?? { optOutUrl: "https://example.com/" }, profile), id).toMatch(/^https:\/\//);
     }
     expect(BROKERS.find((broker) => broker.id === "sync-me")?.steps.join(" ")).toContain("Daniel's Law");
+    const ufind = BROKERS.find((broker) => broker.id === "ufind");
+    expect(selfSearchUrl(ufind ?? { optOutUrl: "https://example.com/" }, profile)).toBe(
+      "https://ufind.name/John+Smith",
+    );
+    expect(ufind?.optOutUrl).toBe("https://ufind.name/opt-out");
+    expect(ufind?.steps.join(" ")).not.toMatch(/https?:\/\/|mailto:/);
+    for (const [id, url] of [
+      ["privatereports", "https://www.privatereports.com/api/helper/optOutLight/search?type=removal"],
+      ["peoplesearcher", "https://www.peoplesearcher.com/api/helper/optOutLight/search?type=removal"],
+      ["weinform", "https://www.weinform.org/api/helper/optOutLight/search?type=removal"],
+      ["truthrecord", "https://www.truthrecord.org/api/helper/optOutLight/search?type=removal"],
+    ] as const) {
+      const broker = BROKERS.find((item) => item.id === id);
+      expect(broker?.optOutUrl).toBe(url);
+      expect(broker?.steps.join(" ")).toContain("Remove My Information");
+      expect(broker?.steps.join(" ")).toContain("confirmation link");
+    }
     expect(BROKERS.find((broker) => broker.id === "valassis")?.category).toBe("spam");
     for (const id of ["courtrecords-us", "recordsfinder", "staterecords", "searchquarry", "propertychecker", "courtcasefinder"]) {
       expect(BROKERS.find((broker) => broker.id === id)?.stateLimited).toBe(true);

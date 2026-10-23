@@ -1,5 +1,4 @@
-import { privacyBotTemplateHref } from "../../shared/links";
-import { PRIVACY_LAWS, PRIVACY_LAWS_CHECKED } from "../../shared/privacy-laws";
+import { PRIVACY_LAWS } from "../../shared/privacy-laws";
 import { US_STATES } from "../../shared/states";
 
 function lawStateName(code: string): string {
@@ -7,7 +6,6 @@ function lawStateName(code: string): string {
 }
 
 export function FaqPage() {
-  const privacyBot = privacyBotTemplateHref();
   return (
     <div className="stack prose">
       <h1>Questions people ask</h1>
@@ -16,8 +14,7 @@ export function FaqPage() {
         <h2>Why is my name on these sites?</h2>
         <p>
           A lot of it comes from public records: property rolls, voter files, court records, and old
-          phone books. Data brokers collect those records and sell or show a profile of you. You
-          usually did not sign up.
+          phone books. Data brokers collect those records and sell or show a profile of you.
         </p>
       </section>
 
@@ -53,20 +50,14 @@ export function FaqPage() {
       <section>
         <h2>Why do some sites refuse to remove me?</h2>
         <p>
-          Some people-search sites only honor a removal when you live in a state with a consumer
-          privacy law. FastPeopleSearch, TruePeopleSearch, PeopleFinders, and USPhoneBook are part
-          of one network that works this way. FastBackgroundCheck, Advanced Background Checks, and
-          SmartBackgroundChecks are marked the same way on their cards. If you live in another
-          state, such as Washington, they may refuse you.
-        </p>
-        <p>
           They decide by the state you enter, the address on your listing, and sometimes the IP
           address of the connection you are using. Do not claim to live in another state.
         </p>
         <p>
-          This site only names a state privacy law when it is on the list checked {PRIVACY_LAWS_CHECKED}.
-          Those states are {PRIVACY_LAWS.map((law) => lawStateName(law.state)).join(", ")}. The laws
-          on that list are:
+          The list of states with privacy laws was last checked on 10-22-2026. Those states are
+          California, Colorado, Connecticut, Delaware, Iowa, Indiana, Kentucky, Maryland, Minnesota,
+          Montana, Nebraska, New Hampshire, New Jersey, Oregon, Rhode Island, Tennessee, Texas, Utah,
+          Virginia. The laws on that list are:
         </p>
         <ul>
           {PRIVACY_LAWS.map((law) => (
@@ -75,36 +66,25 @@ export function FaqPage() {
             </li>
           ))}
         </ul>
-        <p>If a site refuses you:</p>
+        <p>If a site refuses to remove your information:</p>
         <ul>
-          <li>Try that site’s general opt-out form anyway.</li>
-          <li>Use Google Results about you. It is under Search Engines in the Privacy Tool.</li>
-          <li>Send a letter when the card offers Write a letter.</li>
-          <li>Check the site again later. Forms and rules change.</li>
+          <li>Try that site’s general opt-out form again.</li>
+          <li>
+            Use Google Results about you to find and remove your information. It is under Search
+            Engines in the Privacy Tool.
+          </li>
+          <li>Send a letter requesting removal of your information</li>
+          <li>Check the site later. Forms and rules change periodically.</li>
         </ul>
       </section>
 
       <section>
         <h2>What if a broker has no form and no email?</h2>
         <p>
-          Some data brokers do not publish an opt-out form or a privacy email. You cannot remove
-          yourself the normal way. This site does not list those companies as cards.
+          Some data brokers do not publish an opt-out form or a privacy email, making it very hard
+          for you to remove your information.
         </p>
-        <ul>
-          <li>If you find a listing, try any Contact or Report link on that site.</li>
-          <li>
-            A free helper is the{" "}
-            {privacyBot ? (
-              <a href={privacyBot} target="_blank" rel="noopener noreferrer">
-                Privacy Bot template
-              </a>
-            ) : (
-              "Privacy Bot template"
-            )}
-            .
-          </li>
-          <li>A paid removal service can keep sending requests for you.</li>
-        </ul>
+        <p>A paid removal service can keep sending requests for you.</p>
       </section>
 
       <section>

@@ -5,7 +5,7 @@ import { validateLetterRequest, type LetterType } from "../../shared/letter";
 import { privacyLawFor } from "../../shared/privacy-laws";
 import { buildTemplateLetter } from "../../shared/templates";
 import { US_STATES } from "../../shared/states";
-import { CLEAR_DATA_CONFIRM, SHARED_COMPUTER_TIP } from "../../shared/progress";
+import { CLEAR_DATA_CONFIRM } from "../../shared/progress";
 import { useSavedData } from "../lib/storage";
 
 const TYPES: { value: LetterType; label: string; help: string }[] = [
@@ -317,7 +317,6 @@ export function LettersPage() {
           <button type="button" className="button button-danger" onClick={onClear}>
             Clear my data
           </button>
-          <p className="hint">{SHARED_COMPUTER_TIP}</p>
         </div>
         {status ? (
           <p role="status" className="notice">
