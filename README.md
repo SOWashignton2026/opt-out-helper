@@ -114,6 +114,8 @@ Checked again on October 22, 2026:
 
 Spam calls, junk mail, carrier tools, and phone settings are filters inside the Privacy Tool. The old `/spam` and `/resources` addresses open that filter. There is no separate tab for them.
 
+Checked again on October 23, 2026. The Privacy Tool has a **Non-public brokers** filter for companies that take email only (Melissa, Affinity Answers, Analytics-IQ, Comscore, Crunchbase, FourLeaf, ListMatch, PacificEast, Semcasting, Shopalyst, and Site Impact). Analytics-IQ and Crunchbase are marked for privacy-law states. Crunchbase is mostly business profiles. Marketing form pages that loaded were added under Marketing Data Brokers. Postie's button opens `https://optout.postie.com/` because `postie.com/opt-out/` had no form. Datafy's steps say the form asks for a mobile advertising ID. These addresses were not added: Stirista, IDM, and Ray Insights returned 404; Anchor Computer’s address is a blog post; SheerID’s address is an EU GDPR form on EDPO; AdElement’s address is the company homepage; RevOptimal’s address is the company homepage.
+
 ## Project layout
 
 - `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the Privacy Tool shows a link.

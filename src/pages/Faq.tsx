@@ -1,3 +1,4 @@
+import { privacyBotTemplateHref } from "../../shared/links";
 import { PRIVACY_LAWS, PRIVACY_LAWS_CHECKED } from "../../shared/privacy-laws";
 import { US_STATES } from "../../shared/states";
 
@@ -6,6 +7,7 @@ function lawStateName(code: string): string {
 }
 
 export function FaqPage() {
+  const privacyBot = privacyBotTemplateHref();
   return (
     <div className="stack prose">
       <h1>Questions people ask</h1>
@@ -79,6 +81,29 @@ export function FaqPage() {
           <li>Use Google Results about you. It is under Search Engines in the Privacy Tool.</li>
           <li>Send a letter when the card offers Write a letter.</li>
           <li>Check the site again later. Forms and rules change.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>What if a broker has no form and no email?</h2>
+        <p>
+          Some data brokers do not publish an opt-out form or a privacy email. You cannot remove
+          yourself the normal way. This site does not list those companies as cards.
+        </p>
+        <ul>
+          <li>If you find a listing, try any Contact or Report link on that site.</li>
+          <li>
+            A free helper is the{" "}
+            {privacyBot ? (
+              <a href={privacyBot} target="_blank" rel="noopener noreferrer">
+                Privacy Bot template
+              </a>
+            ) : (
+              "Privacy Bot template"
+            )}
+            .
+          </li>
+          <li>A paid removal service can keep sending requests for you.</li>
         </ul>
       </section>
 

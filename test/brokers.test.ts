@@ -65,9 +65,13 @@ describe("broker list", () => {
       expect(broker.id).toMatch(/^[a-z0-9-]{2,40}$/);
       for (const key of REQUIRED) expect(broker[key]).not.toBeUndefined();
       expect(["easy", "medium", "hard"]).toContain(broker.difficulty);
-      expect(["people-search", "spam", "marketing", "search"]).toContain(broker.category);
+      expect(["people-search", "spam", "marketing", "search", "nonpublic"]).toContain(broker.category);
       expect(["ok", "blocked", "failed"]).toContain(broker.verification);
-      expect(broker.optOutUrl.startsWith("https://")).toBe(true);
+      if (broker.category === "nonpublic") {
+        expect(broker.optOutUrl.startsWith("mailto:")).toBe(true);
+      } else {
+        expect(broker.optOutUrl.startsWith("https://")).toBe(true);
+      }
       expect(broker.steps.length).toBeGreaterThan(0);
       expect(typeof broker.requiresEmail).toBe("boolean");
       expect(typeof broker.requiresId).toBe("boolean");
@@ -125,7 +129,21 @@ describe("broker list", () => {
 
   it("recommends a letter only when a written request is the route", () => {
     const flagged = BROKERS.filter((broker) => broker.letterRecommended).map((broker) => broker.id);
-    expect(flagged).toEqual(["mylife", "acxiom"]);
+    expect(flagged).toEqual([
+      "mylife",
+      "acxiom",
+      "melissa",
+      "affinity-answers",
+      "analytics-iq",
+      "comscore",
+      "crunchbase",
+      "fourleaf",
+      "listmatch",
+      "pacificeast",
+      "semcasting",
+      "shopalyst",
+      "site-impact",
+    ]);
     const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
     expect(spokeo?.letterRecommended).toBe(false);
     for (const broker of BROKERS) {
@@ -255,6 +273,67 @@ describe("broker list", () => {
       expect(BROKERS.find((broker) => broker.id === id)?.stateLimited).toBe(true);
     }
     expect(BROKERS.some((broker) => broker.id === "stirista" || broker.name.startsWith("DROPPED"))).toBe(false);
+    const emailOnly = [
+      ["melissa", "consumerrequest@melissa.com"],
+      ["affinity-answers", "dataprivacy@affinityanswers.com"],
+      ["analytics-iq", "compliance@alliantdata.com"],
+      ["comscore", "privacy@comscore.com"],
+      ["crunchbase", "privacy@crunchbase.com"],
+      ["fourleaf", "privacy@fourleafdata.com"],
+      ["listmatch", "dataprivacy@listmatch.com"],
+      ["pacificeast", "privacy@pacificeast.com"],
+      ["semcasting", "privacychoice@semcasting.com"],
+      ["shopalyst", "privacy@shopalyst.com"],
+      ["site-impact", "dataprivacy@siteimpact.com"],
+    ] as const;
+    for (const [id, email] of emailOnly) {
+      const broker = BROKERS.find((item) => item.id === id);
+      expect(broker?.category).toBe("nonpublic");
+      expect(broker?.email).toBe(email);
+      expect(broker?.optOutUrl).toBe(
+        `mailto:${email}?subject=Request%20to%20delete%20my%20personal%20information`,
+      );
+      expect(broker?.searchUrlTemplate).toBeUndefined();
+      expect(selfSearchUrl(broker ?? { optOutUrl: "https://example.com/" }, profile)).toBeNull();
+      expect(broker?.steps.join(" ")).toContain("about 45 days");
+    }
+    expect(BROKERS.find((broker) => broker.id === "analytics-iq")?.stateLimited).toBe(true);
+    expect(BROKERS.find((broker) => broker.id === "crunchbase")?.stateLimited).toBe(true);
+    expect(BROKERS.find((broker) => broker.id === "crunchbase")?.blurb).toContain("business profiles");
+    const shippedForms = [
+      "33-mile-radius",
+      "addefend",
+      "allant",
+      "datafy",
+      "diablo-media",
+      "fifty",
+      "findem",
+      "id5",
+      "intentmacro",
+      "keyword-connects",
+      "lbdigital",
+      "lionshare",
+      "postie",
+      "realsource",
+      "remodeling",
+      "swordfish",
+      "ventiveiq",
+      "media-resource-group",
+      "statara",
+      "freewheel",
+    ];
+    for (const id of shippedForms) {
+      const broker = BROKERS.find((item) => item.id === id);
+      expect(broker?.category, id).toBe("marketing");
+      expect(broker?.optOutUrl.startsWith("https://"), id).toBe(true);
+      expect(broker?.searchUrlTemplate, id).toBeUndefined();
+      expect(selfSearchUrl(broker ?? { optOutUrl: "https://example.com/" }, profile), id).toBeNull();
+    }
+    expect(BROKERS.find((broker) => broker.id === "postie")?.optOutUrl).toBe("https://optout.postie.com/");
+    expect(BROKERS.find((broker) => broker.id === "datafy")?.steps.join(" ")).toContain("mobile advertising ID");
+    for (const id of ["anchor-computer", "sheerid", "idm", "ray-insights", "revoptimal", "adelement"]) {
+      expect(BROKERS.some((broker) => broker.id === id)).toBe(false);
+    }
   });
 
   it("reads the Privacy Tool filter from the address", () => {
@@ -263,11 +342,14 @@ describe("broker list", () => {
     expect(parseToolFilter("marketing")).toBe("marketing");
     expect(parseToolFilter("search")).toBe("search");
     expect(parseToolFilter("people")).toBe("people-search");
+    expect(parseToolFilter("nonpublic")).toBe("nonpublic");
+    expect(parseToolFilter("non-public")).toBe("nonpublic");
     expect(parseToolFilter("nope")).toBe("all");
     expect(FILTER_LABELS.spam).toBe("Spam Calls & Junk Mail");
     expect(FILTER_LABELS["people-search"]).toBe("People-Search Sites");
     expect(FILTER_LABELS.marketing).toBe("Marketing Data Brokers");
     expect(FILTER_LABELS.search).toBe("Search Engines");
+    expect(FILTER_LABELS.nonpublic).toBe("Non-public brokers");
   });
 
   it("builds a Spokeo search link and phone lookups", () => {

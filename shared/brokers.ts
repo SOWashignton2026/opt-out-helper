@@ -16,7 +16,7 @@
  * state-privacy deletion request. Simple web forms stay false.
  */
 export type Difficulty = "easy" | "medium" | "hard";
-export type Category = "people-search" | "spam" | "marketing" | "search";
+export type Category = "people-search" | "spam" | "marketing" | "search" | "nonpublic";
 export type Verification = "ok" | "blocked" | "failed";
 
 export type Broker = {
@@ -41,6 +41,8 @@ export type Broker = {
   stateLimited?: boolean;
   /** True when the opt-out link itself could not be confirmed. */
   linkNotVerified?: boolean;
+  /** Privacy inbox for email-only brokers. The card copies this address. */
+  email?: string;
   /** YYYY-MM-DD when the link checked out, or null when verification is failed. */
   lastVerified: string | null;
   verification: Verification;
@@ -49,6 +51,50 @@ export type Broker = {
 
 const CHECKED = "2026-10-19";
 const RECHECKED = "2026-10-22";
+const BATCH4 = "2026-10-23";
+const DELETE_SUBJECT = "Request to delete my personal information";
+
+function privacyMailto(address: string): string {
+  return `mailto:${address}?subject=${encodeURIComponent(DELETE_SUBJECT)}`;
+}
+
+function emailSteps(address: string): string[] {
+  const href = privacyMailto(address);
+  return [
+    `Email [${address}](${href}) with the subject "${DELETE_SUBJECT}".`,
+    "Include your name, address, email, and phone. Ask them to delete your information and to opt out of selling it.",
+    "Reply to any verification email they send.",
+    "If you do not hear back, follow up after about 45 days.",
+  ];
+}
+
+function emailBroker(entry: {
+  id: string;
+  name: string;
+  email: string;
+  blurb: string;
+  stateLimited?: boolean;
+  notes?: string;
+}): Broker {
+  return {
+    id: entry.id,
+    name: entry.name,
+    category: "nonpublic",
+    blurb: entry.blurb,
+    email: entry.email,
+    optOutUrl: privacyMailto(entry.email),
+    steps: emailSteps(entry.email),
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: true,
+    ...(entry.stateLimited ? { stateLimited: true } : {}),
+    lastVerified: BATCH4,
+    verification: "ok",
+    notes: entry.notes,
+  };
+}
 
 export const PEOPLE_CONNECT_OPTOUT = "https://suppression.peopleconnect.us/optout";
 
@@ -1596,6 +1642,470 @@ export const BROKERS: Broker[] = [
     lastVerified: RECHECKED,
     verification: "ok",
   },
+  emailBroker({
+    id: "melissa",
+    name: "Melissa",
+    email: "consumerrequest@melissa.com",
+    blurb: "Contact-data company. There is no public opt-out form. Email their privacy address.",
+    notes: "High-confidence privacy email on the company site.",
+  }),
+  emailBroker({
+    id: "affinity-answers",
+    name: "Affinity Answers",
+    email: "dataprivacy@affinityanswers.com",
+    blurb: "Marketing data company. Email is the way to ask for deletion.",
+  }),
+  emailBroker({
+    id: "analytics-iq",
+    name: "Analytics-IQ",
+    email: "compliance@alliantdata.com",
+    blurb: "Marketing data company owned by Alliant. The privacy email may only be honored in states with a consumer privacy law.",
+    stateLimited: true,
+    notes: "Owned by Alliant. Privacy email is compliance@alliantdata.com.",
+  }),
+  emailBroker({
+    id: "comscore",
+    name: "Comscore",
+    email: "privacy@comscore.com",
+    blurb: "Audience measurement company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "crunchbase",
+    name: "Crunchbase",
+    email: "privacy@crunchbase.com",
+    blurb: "Mostly business profiles, so a personal listing is uncommon. The privacy email may only be honored in states with a consumer privacy law.",
+    stateLimited: true,
+  }),
+  emailBroker({
+    id: "fourleaf",
+    name: "FourLeaf",
+    email: "privacy@fourleafdata.com",
+    blurb: "Marketing data company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "listmatch",
+    name: "ListMatch",
+    email: "dataprivacy@listmatch.com",
+    blurb: "Mailing-list company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "pacificeast",
+    name: "PacificEast",
+    email: "privacy@pacificeast.com",
+    blurb: "Marketing data company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "semcasting",
+    name: "Semcasting",
+    email: "privacychoice@semcasting.com",
+    blurb: "Audience data company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "shopalyst",
+    name: "Shopalyst",
+    email: "privacy@shopalyst.com",
+    blurb: "Shopping data company. Email their privacy address to ask for deletion.",
+  }),
+  emailBroker({
+    id: "site-impact",
+    name: "Site Impact",
+    email: "dataprivacy@siteimpact.com",
+    blurb: "Email marketing company. Email their privacy address to ask for deletion.",
+  }),
+  {
+    id: "33-mile-radius",
+    name: "33 Mile Radius",
+    category: "marketing",
+    blurb: "Local marketing data. Open their do-not-sell page and submit the form.",
+    optOutUrl: "https://www.33mileradius.com/do-not-sell/",
+    steps: [
+      "Open the [33 Mile Radius do-not-sell page](https://www.33mileradius.com/do-not-sell/).",
+      "Fill in the form with your name and email.",
+      "Submit it and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "blocked",
+    notes: "The do-not-sell address blocked our checker on 2026-10-23.",
+  },
+  {
+    id: "addefend",
+    name: "AdDefend",
+    category: "marketing",
+    blurb: "Ad company. The opt-out is a browser setting for their data collection, not a name-and-address form.",
+    optOutUrl: "https://www.addefend.com/en/opt-out/",
+    steps: [
+      "Open the [AdDefend opt-out page](https://www.addefend.com/en/opt-out/).",
+      "Use the control on that page to opt out of AdDefend data collection.",
+      "If the page says you are unknown, an ad blocker may be blocking def-platform.com. Allow that domain and reload.",
+    ],
+    difficulty: "easy",
+    requiresEmail: false,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "allant",
+    name: "Allant Group",
+    category: "marketing",
+    blurb: "Marketing data company. The request form is hosted by OneTrust.",
+    optOutUrl: "https://privacyportal-cdn.onetrust.com/dsarwebform/cbbe21b6-d675-445f-9c24-f625c01dafb3/b0160307-96f2-4e7b-9cd8-c70b09b0a76b.html",
+    steps: [
+      "Open the [Allant Group request form](https://privacyportal-cdn.onetrust.com/dsarwebform/cbbe21b6-d675-445f-9c24-f625c01dafb3/b0160307-96f2-4e7b-9cd8-c70b09b0a76b.html).",
+      "Fill in your name and email and ask them to delete your information.",
+      "Submit the form and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "datafy",
+    name: "Datafy",
+    category: "marketing",
+    blurb: "Advertising-data company. The form asks for a mobile advertising ID, and it is written for states with a consumer privacy law.",
+    optOutUrl: "https://www.datafy.com/opt-out",
+    steps: [
+      "Open the [Datafy opt-out form](https://www.datafy.com/opt-out).",
+      "The page says they may only act if you live in a state with a consumer privacy law.",
+      "They ask for a mobile advertising ID (IDFA on iPhone, Advertising ID on Android) and say they may not match you without it.",
+      "Submit the form and watch for a reply.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    stateLimited: true,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "diablo-media",
+    name: "Diablo Media",
+    category: "marketing",
+    blurb: "Marketing company. The page is an opt-out for their mailings.",
+    optOutUrl: "https://www.diablomedia.com/privacy-request/",
+    steps: [
+      "Open the [Diablo Media privacy request](https://www.diablomedia.com/privacy-request/).",
+      "Use the form to opt out of future mailings.",
+      "If the form does not appear, use the contact page linked there.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "fifty",
+    name: "Fifty",
+    category: "marketing",
+    blurb: "Audience data company. The opt-out page is written for California privacy rights.",
+    optOutUrl: "https://fifty.io/opt-out",
+    steps: [
+      "Open the [Fifty opt-out form](https://fifty.io/opt-out).",
+      "The page is written for California privacy rights.",
+      "Fill in the form and submit it.",
+      "Watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    stateLimited: true,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "findem",
+    name: "Findem",
+    category: "marketing",
+    blurb: "Work-profile data. The privacy form asks them to update or remove you.",
+    optOutUrl: "https://www.findem.ai/privacy-rights",
+    steps: [
+      "Open the [Findem privacy form](https://www.findem.ai/privacy-rights).",
+      "Ask them to remove your personal information from their data.",
+      "Submit your name and email.",
+      "Watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "id5",
+    name: "ID5",
+    category: "marketing",
+    blurb: "Advertising identity company. Use their privacy center to opt out.",
+    optOutUrl: "https://id5-sync.com/privacy/do-not-sell",
+    steps: [
+      "Open the [ID5 privacy center](https://id5-sync.com/privacy/do-not-sell).",
+      "Use the opt-out control on that page.",
+      "The page needs JavaScript. If it stays blank, try another browser.",
+    ],
+    difficulty: "easy",
+    requiresEmail: false,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "intentmacro",
+    name: "IntentMacro",
+    category: "marketing",
+    blurb: "Marketing data company. Open their do-not-sell page and submit the form.",
+    optOutUrl: "https://intentmacro.com/do-not-sell-my-information/",
+    steps: [
+      "Open the [IntentMacro do-not-sell page](https://intentmacro.com/do-not-sell-my-information/).",
+      "Fill in the form with your name and email.",
+      "Submit it and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "blocked",
+    notes: "The do-not-sell address blocked our checker on 2026-10-23.",
+  },
+  {
+    id: "keyword-connects",
+    name: "Keyword Connects",
+    category: "marketing",
+    blurb: "Marketing company. The form asks them to delete your information or not sell it.",
+    optOutUrl: "https://keywordconnects.com/do-not-sell/",
+    steps: [
+      "Open the [Keyword Connects do-not-sell form](https://keywordconnects.com/do-not-sell/).",
+      "Enter the name and contact details they may hold.",
+      "Submit the form. You do not need an account.",
+      "Watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "lbdigital",
+    name: "LBDigital",
+    category: "marketing",
+    blurb: "Email-list company. The page registers your address with the ANA Email Preference Service.",
+    optOutUrl: "https://www.ims-dm.com/cgi/optoutemps.php",
+    steps: [
+      "Open the [LBDigital email opt-out](https://www.ims-dm.com/cgi/optoutemps.php).",
+      "Register the personal email you want taken off commercial US email lists. This is the ANA Email Preference Service.",
+      "It does not stop every sender. Work email and mail from outside the United States are not covered.",
+      "There is no charge to register.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "lionshare",
+    name: "LionShare Marketing",
+    category: "marketing",
+    blurb: "Marketing company. The form asks for your name and mailing address.",
+    optOutUrl: "https://www.lionsharemarketing.com/opt-out/",
+    steps: [
+      "Open the [LionShare opt-out form](https://www.lionsharemarketing.com/opt-out/).",
+      "Enter your name and mailing address.",
+      "Submit the form.",
+    ],
+    difficulty: "easy",
+    requiresEmail: false,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "postie",
+    name: "Postie",
+    category: "marketing",
+    blurb: "Mail marketing company. The opt-out form asks for your name and address. You can also call 855-931-2869.",
+    optOutUrl: "https://optout.postie.com/",
+    homeUrl: "https://postie.com/opt-out/",
+    steps: [
+      "Open the [Postie opt-out form](https://optout.postie.com/).",
+      "Enter your name and mailing address. The page needs JavaScript. If the form does not show, call 855-931-2869.",
+      "Submit the form and watch for a confirmation.",
+    ],
+    difficulty: "easy",
+    requiresEmail: false,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+    notes: "The company page at postie.com/opt-out/ links here. The form itself is on optout.postie.com.",
+  },
+  {
+    id: "realsource",
+    name: "RealSource Data",
+    category: "marketing",
+    blurb: "Marketing list company. Use their do-not-sell page.",
+    optOutUrl: "https://www.realsourcedata.com/do-not-sell-my-personal-information",
+    steps: [
+      "Open the [RealSource do-not-sell page](https://www.realsourcedata.com/do-not-sell-my-personal-information).",
+      "Fill in the form on that page.",
+      "Submit it and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "remodeling",
+    name: "Remodeling.com",
+    category: "marketing",
+    blurb: "Home-services marketing site. The form asks them to delete your information or not sell it.",
+    optOutUrl: "https://remodeling.com/do-not-sell/",
+    steps: [
+      "Open the [Remodeling.com do-not-sell form](https://remodeling.com/do-not-sell/).",
+      "Enter the name and contact details they may hold. You do not need an account.",
+      "Submit the form and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "swordfish",
+    name: "Swordfish",
+    category: "marketing",
+    blurb: "Work-contact data. Open their opt-out page. Our checker hit a bot wall.",
+    optOutUrl: "https://swordfish.ai/opt-out",
+    steps: [
+      "Open the [Swordfish opt-out page](https://swordfish.ai/opt-out).",
+      "Complete the check if the site asks you to prove you are a person.",
+      "Submit the opt-out form and watch for a confirmation email.",
+    ],
+    difficulty: "medium",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "blocked",
+    notes: "The opt-out address showed a bot check on 2026-10-23, so the form itself was not visible.",
+  },
+  {
+    id: "ventiveiq",
+    name: "VentiveIQ",
+    category: "marketing",
+    blurb: "Data company. The request form is a privacy portal.",
+    optOutUrl: "https://privacyportal.privacypillar.com/dsar/form?orgid=0c31c814-ea86-461f-8ccb-294f05bc74c3&propid=cc95835d-7719-4336-b0c4-18146e5d000a&formid=4348f332-6917-4566-8c56-6fc9eb57097f&status=publish",
+    steps: [
+      "Open the [VentiveIQ request form](https://privacyportal.privacypillar.com/dsar/form?orgid=0c31c814-ea86-461f-8ccb-294f05bc74c3&propid=cc95835d-7719-4336-b0c4-18146e5d000a&formid=4348f332-6917-4566-8c56-6fc9eb57097f&status=publish).",
+      "Fill in your name and email and ask them to delete your information.",
+      "Submit the form and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "media-resource-group",
+    name: "Media Resource Group",
+    category: "marketing",
+    blurb: "Marketing company. The opt-out page is a form on their site.",
+    optOutUrl: "https://www.mrginc.com/opt-out",
+    steps: [
+      "Open the [Media Resource Group opt-out](https://www.mrginc.com/opt-out).",
+      "Fill in the form. The page needs JavaScript.",
+      "Submit it and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "ok",
+  },
+  {
+    id: "statara",
+    name: "Statara",
+    category: "marketing",
+    blurb: "Voter and marketing data. Open their opt-out page and submit the form.",
+    optOutUrl: "https://statara.com/opt-out/",
+    steps: [
+      "Open the [Statara opt-out page](https://statara.com/opt-out/).",
+      "Fill in the form with your name and email.",
+      "Submit it and watch for a confirmation email.",
+    ],
+    difficulty: "easy",
+    requiresEmail: true,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "blocked",
+    notes: "The opt-out address blocked our checker on 2026-10-23.",
+  },
+  {
+    id: "freewheel",
+    name: "FreeWheel",
+    category: "marketing",
+    blurb: "Advertising company. Open their opt-out page and use the control it shows.",
+    optOutUrl: "https://www.freewheel.com/opt-out.html",
+    steps: [
+      "Open the [FreeWheel opt-out page](https://www.freewheel.com/opt-out.html).",
+      "Use the opt-out control on that page.",
+      "If the page asks you to confirm, finish that step.",
+    ],
+    difficulty: "easy",
+    requiresEmail: false,
+    requiresId: false,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: BATCH4,
+    verification: "blocked",
+    notes: "The opt-out address blocked our checker on 2026-10-23.",
+  },
   {
     id: "do-not-call",
     name: "National Do Not Call Registry",
@@ -1821,9 +2331,13 @@ export const STATE_LIMITED_IDS = [
   "searchquarry",
   "propertychecker",
   "courtcasefinder",
+  "analytics-iq",
+  "crunchbase",
+  "datafy",
+  "fifty",
 ] as const;
 
-export const TOOL_FILTERS = ["all", "people-search", "spam", "marketing", "search"] as const;
+export const TOOL_FILTERS = ["all", "people-search", "spam", "marketing", "search", "nonpublic"] as const;
 export type ToolFilter = (typeof TOOL_FILTERS)[number];
 
 const FILTER_ALIASES: Record<string, ToolFilter> = {
@@ -1837,6 +2351,8 @@ const FILTER_ALIASES: Record<string, ToolFilter> = {
   marketing: "marketing",
   search: "search",
   "search-engines": "search",
+  nonpublic: "nonpublic",
+  "non-public": "nonpublic",
 };
 
 export function parseToolFilter(value: string | null | undefined): ToolFilter {
@@ -1850,6 +2366,7 @@ export const FILTER_LABELS: Record<ToolFilter, string> = {
   spam: "Spam Calls & Junk Mail",
   marketing: "Marketing Data Brokers",
   search: "Search Engines",
+  nonpublic: "Non-public brokers",
 };
 
 export function brokersByIds(ids: readonly string[]): Broker[] {
@@ -1863,9 +2380,9 @@ export function brokersByCategory(category: Category): Broker[] {
   return BROKERS.filter((broker) => broker.category === category);
 }
 
-/** People-search and marketing sites can take a written request. Spam tools and search engines do not. */
+/** People-search, marketing, and email-only brokers can take a written request. Spam tools and search engines do not. */
 export function acceptsLetter(broker: Broker): boolean {
-  return broker.category === "people-search" || broker.category === "marketing";
+  return broker.category === "people-search" || broker.category === "marketing" || broker.category === "nonpublic";
 }
 
 export function letterBrokers(): Broker[] {

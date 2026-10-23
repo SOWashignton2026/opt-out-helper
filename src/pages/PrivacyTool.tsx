@@ -289,6 +289,32 @@ export function PrivacyToolPage() {
   );
 }
 
+function EmailBrokerActions({ broker }: { broker: Broker }) {
+  const [note, setNote] = useState("");
+  const address = broker.email ?? "";
+
+  async function copyEmail() {
+    try {
+      await navigator.clipboard.writeText(address);
+      setNote("Copied.");
+    } catch {
+      setNote("Select the text and copy it.");
+    }
+  }
+
+  return (
+    <>
+      <a className="button button-primary" href={broker.optOutUrl}>
+        Email them
+      </a>
+      <button type="button" className="button button-quiet" onClick={() => void copyEmail()}>
+        Copy email
+      </button>
+      {note ? <span className="hint">{note}</span> : null}
+    </>
+  );
+}
+
 function BrokerCard({
   broker,
   status,
@@ -309,6 +335,7 @@ function BrokerCard({
         <h2>{broker.name}</h2>
         <div className="tags">
           <span className={`tag tag-${broker.difficulty}`}>{broker.difficulty}</span>
+          {broker.stateLimited ? <span className="tag">Privacy-law states</span> : null}
           {broker.linkNotVerified ? <span className="flag">Link not yet verified</span> : null}
           {!broker.linkNotVerified && broker.verification === "failed" ? (
             <span className="flag">Link not verified</span>
@@ -345,7 +372,11 @@ function BrokerCard({
       ) : null}
       <StepList steps={broker.steps} />
       <div className="row card-actions">
-        <OptOutButton broker={broker} />
+        {broker.category === "nonpublic" && broker.email ? (
+          <EmailBrokerActions broker={broker} />
+        ) : (
+          <OptOutButton broker={broker} />
+        )}
         {broker.letterRecommended ? (
           <Link className="button button-quiet" to={`/letters?broker=${broker.id}`}>
             Write a letter

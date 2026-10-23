@@ -33,6 +33,7 @@ describe("letter validation", () => {
     expect(validateLetterRequest({ ...valid, brokerId: "do-not-call" }, BROKERS).ok).toBe(false);
     expect(validateLetterRequest({ ...valid, brokerId: "google-results-about-you" }, BROKERS).ok).toBe(false);
     expect(validateLetterRequest({ ...valid, brokerId: "acxiom" }, BROKERS).ok).toBe(true);
+    expect(validateLetterRequest({ ...valid, brokerId: "melissa" }, BROKERS).ok).toBe(true);
     expect(validateLetterRequest({ ...valid, brokerId: "not-a-site" }, BROKERS).ok).toBe(false);
     expect(validateLetterRequest({ ...valid, email: "not-an-email" }, BROKERS).ok).toBe(false);
     expect(validateLetterRequest({ ...valid, state: "ZZ" }, BROKERS).ok).toBe(false);
