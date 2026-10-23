@@ -20,13 +20,22 @@ export function HomePage() {
     <div className="stack">
       <h1 className="sr">Privacy Defender</h1>
       <section className="about" aria-labelledby="about-title">
-        <h2 id="about-title">About me</h2>
+        <h2 id="about-title">About this tool</h2>
         <p>
-          Hello there! I'm S. O. Washington, and I recently dove into the world of app and website
-          building. This is one of the first tools I've built, and I wanted to share it with you
-          because I'm sure your privacy, and your family's, means as much to you as it does to me.
+          Have you ever gotten a spam call?
+          <br />
+          Is your mailbox overflowing with nothing but junk mail?
+          <br />
+          Do you keep getting “You’re pre-approved for…” offers?
+          <br />
+          Want it to stop?
         </p>
-        <p>This tool is free and always will be.</p>
+        <p>
+          Use this free web app to remove your personal information from hundreds of data brokers
+          and protect it from future exposure. Many companies offer the same service—but charge
+          hundreds of dollars a year. This tool does the same thing,&nbsp;&nbsp;but it is completely
+          free.
+        </p>
       </section>
 
       <section aria-labelledby="how-title">
