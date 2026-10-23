@@ -1,9 +1,9 @@
-import { decideCap, hashVisitorId, isVisitorCookie, parseDailyLimit, readCookie, selectVisitorMaterial, usageKey, utcDateKey, VISITOR_COOKIE, visitorCookie } from "../shared/cap";
-import { BROKERS } from "../shared/brokers";
-import { buildLetterPrompt, LETTER_LIMITS, LETTER_SYSTEM_PROMPT, validateLetterRequest } from "../shared/letter";
-import { fetchWith5xxRetry } from "../shared/retry";
-import { API_CSP, PAGE_CSP, securityHeaders } from "../shared/security";
-import { buildTemplateLetter } from "../shared/templates";
+import { decideCap, hashVisitorId, isVisitorCookie, parseDailyLimit, readCookie, selectVisitorMaterial, usageKey, utcDateKey, VISITOR_COOKIE, visitorCookie } from "../../shared/cap";
+import { BROKERS } from "../../shared/brokers";
+import { buildLetterPrompt, LETTER_LIMITS, LETTER_SYSTEM_PROMPT, validateLetterRequest } from "../../shared/letter";
+import { fetchWith5xxRetry } from "../../shared/retry";
+import { API_CSP, securityHeaders } from "../../shared/security";
+import { buildTemplateLetter } from "../../shared/templates";
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
 function capMessage(limit: number): string {
@@ -283,21 +283,17 @@ async function handleLetter(request: Request, env: Env): Promise<Response> {
   }
 }
 
-export default {
-  async fetch(request, env): Promise<Response> {
-    const url = new URL(request.url);
-    if (url.pathname === "/api/letter") {
-      try {
-        return await handleLetter(request, env);
-      } catch (error) {
-        log({
-          message: "letter",
-          outcome: "unhandled",
-          error: error instanceof Error ? error.name : "error",
-        });
-        return json({ error: "server", message: "Something went wrong. Use the template below." }, 500);
-      }
-    }
-    return applySecurity(await env.ASSETS.fetch(request), PAGE_CSP);
-  },
-} satisfies ExportedHandler<Env>;
+// Pages file routing mounts this file at /api/letter. Static pages are served
+// by Pages. public/_routes.json invokes a Function only for that path.
+export const onRequest: PagesFunction<Env> = async (context) => {
+  try {
+    return await handleLetter(context.request, context.env);
+  } catch (error) {
+    log({
+      message: "letter",
+      outcome: "unhandled",
+      error: error instanceof Error ? error.name : "error",
+    });
+    return json({ error: "server", message: "Something went wrong. Use the template below." }, 500);
+  }
+};

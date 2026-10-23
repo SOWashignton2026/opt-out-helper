@@ -26,21 +26,25 @@ Copy the example env file and turn on a sample letter writer so you can try the 
 cp .env.example .dev.vars
 ```
 
-In `.dev.vars`, set `MOCK_GROQ=true` for a local preview. Set it back to `false` before you deploy.
+In `.dev.vars`, set `MOCK_GROQ=true` for a local preview. That file stays on your computer. The deployed value stays `false` in `wrangler.jsonc`.
 
 Then start the site:
 
 ```bash
-npx wrangler dev
+npx wrangler pages dev
 ```
 
 Open the address Wrangler prints (usually `http://127.0.0.1:8787`).
 
-`npm run build` makes the pages. `npx wrangler dev` serves those pages and the `/api/letter` route.
+`npm run build` makes the pages in `dist/`. `npx wrangler pages dev` serves those pages and the `/api/letter` Function. Pages serves the React app for paths such as `/privacy-tool` when there is no matching file. There is no `404.html`, which is the Pages single-page-app behavior.
 
-## Put it on Cloudflare
+## Put it on Cloudflare Pages
 
-Do this yourself when you want the public site. Nothing in this repo deploys it for you.
+The public site is a Cloudflare Pages project named `privacy`. After the production deploy, it is served at <https://privacy.pages.dev>.
+
+Do this yourself when you want the public site. Nothing in this repo creates the project or deploys it.
+
+Leave the existing Worker in place. Do not delete it, and do not add a redirect from its workers.dev address.
 
 1. Log in to Cloudflare. Either:
 
@@ -48,36 +52,45 @@ Do this yourself when you want the public site. Nothing in this repo deploys it 
 npx wrangler login
 ```
 
-or set an API token in the `CLOUDFLARE_API_TOKEN` environment variable. The token needs permission to edit Workers and Workers KV.
+or set an API token in the `CLOUDFLARE_API_TOKEN` environment variable. The token needs permission to edit Cloudflare Pages and to read Workers KV (so the deploy can bind the namespace that already exists).
 
-2. Create the small counter that enforces 10 AI letters per visitor per day:
+2. Create the Pages project. The name has to be `privacy`, and the production branch has to be `main`:
 
 ```bash
-npx wrangler kv namespace create AI_USAGE
+npx wrangler pages project create privacy --production-branch main
 ```
 
-Copy the id it prints into `wrangler.jsonc`, replacing `00000000000000000000000000000000`.
+That name is what makes the production address `https://privacy.pages.dev`.
 
-3. Save your Groq key as a secret. This command does not put the key in the repo:
+3. The daily counter is the existing `AI_USAGE` KV namespace, id `6af39e158b4d4adda9dde57614983066`, already set in `wrangler.jsonc`. Do not create another namespace. The production deploy binds it.
+
+4. Save your Groq key as a production secret. This command does not put the key in the repo. Run it before the first deploy that should call Groq:
 
 ```bash
-printf %s "$GROQ_API_KEY" | npx wrangler secret put GROQ_API_KEY
+printf %s "$GROQ_API_KEY" | npx wrangler pages secret put GROQ_API_KEY --project-name privacy
 ```
 
-4. Build and deploy:
+That writes the production secret. Preview branches do not receive it. For a preview that should also call Groq, run the same command with `--env preview`.
+
+5. Build and deploy to the production branch:
 
 ```bash
+npm test
 npm run build
-npx wrangler deploy
+npx wrangler pages deploy --project-name privacy --branch main
 ```
 
-The Worker name is `privacy-defender`. Preview URLs are turned off in `wrangler.jsonc`.
+`--branch main` is required so the deployment is production (`https://privacy.pages.dev`) and not a preview URL. `wrangler.jsonc` is the source of truth for the KV binding and the plain variables (`GROQ_MODEL`, `AI_DAILY_LIMIT_PER_VISITOR`, `MOCK_GROQ`). Leave `MOCK_GROQ` set to `false`.
+
+Use `wrangler pages deploy`, not `wrangler deploy`. This app is a Pages project with a `functions/` directory. If Wrangler says it is delegating the command to Workers, stop and rerun that command with `--force` so the project stays on Pages. After the project exists, later deploys do not need `--force`.
+
+Static pages do not run a Function. `public/_routes.json` invokes a Function only for `/api/letter`, so page views stay on the free static tier. Only the letter API counts against the Functions request allowance.
 
 ## Secrets and bindings
 
 | Name | Kind | Required | What it is |
 | --- | --- | --- | --- |
-| `GROQ_API_KEY` | Secret | Yes, for AI letters | Your Groq key. Set with `wrangler secret put`. |
+| `GROQ_API_KEY` | Secret | Yes, for AI letters | Your Groq key. Set with `wrangler pages secret put`. |
 | `GROQ_MODEL` | Variable | No | Defaults to `openai/gpt-oss-120b`. |
 | `AI_DAILY_LIMIT_PER_VISITOR` | Variable | No | Defaults to `10`. |
 | `MOCK_GROQ` | Variable | No | Keep `false` on Cloudflare. `true` skips Groq and returns a sample letter. |
@@ -89,7 +102,7 @@ The letter template still works if the key or the counter is missing. The AI but
 
 Cloudflare's built-in Rate Limiting binding can only count a 10-second or 60-second window, and the count is separate in each data center. That cannot mean "10 letters today," so this app does not use it.
 
-It uses Workers KV, which is included on the free Workers plan (100,000 reads and 1,000 writes per day). Each successful AI letter does one read and one write. The key is a SHA-256 hash of a random HttpOnly cookie (`ooh_vid`). If the browser does not send that cookie, the hash is of the visitor's IP address instead. The value is just a number for that UTC date. Names, letters, and emails are not stored there.
+It uses Workers KV. The Pages project binds the same `AI_USAGE` namespace. On the free plan that allowance is 100,000 reads and 1,000 writes per day for the account. Each successful AI letter does one read and one write. The key is a SHA-256 hash of a random HttpOnly cookie (`ooh_vid`). If the browser does not send that cookie, the hash is of the visitor's IP address instead. The value is just a number for that UTC date. Names, letters, and emails are not stored there.
 
 KV is not a perfect lock. Two requests at the same moment can both slip through, so someone might get one extra letter. That is acceptable for this cap. Counts reset at midnight UTC because the date is part of the key. Old keys expire after two days.
 
@@ -120,8 +133,8 @@ Checked again on October 23, 2026. The Privacy Tool has a **Non-public brokers**
 
 - `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the Privacy Tool shows a link.
 - `src/` — the React pages.
-- `worker/index.ts` — the `/api/letter` route.
-- `public/` — the icon and security headers.
+- `functions/api/letter.ts` — the `/api/letter` Pages Function.
+- `public/` — the icon, security headers, and the `_routes.json` file that limits Functions to `/api/letter`.
 
 ## Privacy in one paragraph
 
