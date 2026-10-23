@@ -1,4 +1,4 @@
-/** Headers applied to every Worker response. Pages may only load this site. */
+/** Headers applied to Pages Function responses. Static pages get the same page headers from public/_headers. */
 export const PAGE_CSP =
   "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
 

@@ -1,25 +1,13 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "privacy",
-  "main": "worker/index.ts",
+  "pages_build_output_dir": "./dist",
+  // Same runtime date as the previous Worker so letter behavior stays the same.
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
   "upload_source_maps": true,
-  // Keep version preview URLs off. Turn this on only if you want them public.
-  "preview_urls": false,
-  "observability": {
-    "enabled": true,
-    "logs": {
-      "enabled": true,
-      "head_sampling_rate": 1
-    },
-    "traces": {
-      "enabled": true,
-      "head_sampling_rate": 0.01
-    }
-  },
-  "secrets": {
-    "required": ["GROQ_API_KEY"]
+  "dev": {
+    "port": 8787
   },
   "vars": {
     "GROQ_MODEL": "openai/gpt-oss-120b",
@@ -30,18 +18,11 @@
   // Daily AI cap. The Workers Rate Limiting binding only allows a 10 or 60
   // second window, so it cannot count "10 letters per day". This KV namespace
   // stores a hashed visitor id, the UTC date, and a number. Nothing else.
-  // Create it once, then replace the id below:
-  //   npx wrangler kv namespace create AI_USAGE
+  // The namespace already exists. Do not create a second one.
   "kv_namespaces": [
     {
       "binding": "AI_USAGE",
       "id": "6af39e158b4d4adda9dde57614983066"
     }
-  ],
-  "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS",
-    "not_found_handling": "single-page-application",
-    "run_worker_first": true
-  }
+  ]
 }
