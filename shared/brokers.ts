@@ -8,6 +8,7 @@
  * - failed: we could not confirm a working removal page (see notes)
  *
  * Checked on 2026-10-19. New and changed links were checked again on 2026-10-22.
+ * Cards added on 2026-10-28 live in more-brokers.ts and are part of this list.
  *
  * In steps, link a form or page with [label](https://example.com) or
  * [name@example.com](mailto:name@example.com). The Privacy Tool turns those into links.
@@ -15,8 +16,10 @@
  * letterRecommended: true when the practical route is an email, a letter, or a
  * state-privacy deletion request. Simple web forms stay false.
  */
+import { EXTRA_BROKERS, PRIORITY_BROKERS } from "./more-brokers";
+
 export type Difficulty = "easy" | "medium" | "hard";
-export type Category = "people-search" | "spam" | "marketing" | "search" | "nonpublic";
+export type Category = "people-search" | "spam" | "marketing" | "search" | "nonpublic" | "identity";
 export type Verification = "ok" | "blocked" | "failed";
 
 export type Broker = {
@@ -101,11 +104,12 @@ const STATE_LIMITED_NOTE =
   "Often only removes residents of states with a consumer privacy law. The site may look at the state you enter, the address on the listing, and sometimes your IP address. Do not say you live in a state you do not live in.";
 
 export const BROKERS: Broker[] = [
+  ...PRIORITY_BROKERS,
   {
     id: "spokeo",
     name: "Spokeo",
     category: "people-search",
-    blurb: "People search. Opt out one listing URL at a time.",
+    blurb: "People search. Opt out one listing URL at a time. This also removes you from PeopleWin.",
     optOutUrl: "https://www.spokeo.com/optout",
     searchUrlTemplate: "https://www.spokeo.com/{nameSlug}/{stateName}/{citySlug}",
     phoneSearchUrl: "https://www.spokeo.com/reverse-phone-lookup",
@@ -127,7 +131,7 @@ export const BROKERS: Broker[] = [
     id: "whitepages",
     name: "Whitepages",
     category: "people-search",
-    blurb: "People search and reverse phone lookup.",
+    blurb: "People search and reverse phone lookup. This also removes you from 411.com and PeopleSearch.com.",
     optOutUrl: "https://www.whitepages.com/suppression-requests",
     homeUrl: "https://www.whitepages.com/",
     searchUrlTemplate: "https://www.whitepages.com/name/{nameSlug}/{citySlug}-{state}",
@@ -283,7 +287,7 @@ export const BROKERS: Broker[] = [
     id: "mylife",
     name: "MyLife",
     category: "people-search",
-    blurb: "Profile site. Privacy requests can take longer and may ask you to prove who you are.",
+    blurb: "Profile site. Privacy requests can take longer and may ask you to prove who you are. This also removes you from Reunion.",
     optOutUrl: "https://www.mylife.com/privacyrequest",
     steps: [
       "Open the privacy request page, or start from the [help page](https://www.mylife.com/help) if that link moves.",
@@ -790,7 +794,7 @@ export const BROKERS: Broker[] = [
     id: "infotracer",
     name: "InfoTracer",
     category: "people-search",
-    blurb: "People search with an opt-out page.",
+    blurb: "People search with an opt-out page. This also removes you from Phonenumbers.org and InfoPay.",
     optOutUrl: "https://infotracer.com/optout",
     homeUrl: "https://infotracer.com/",
     steps: [
@@ -877,7 +881,7 @@ export const BROKERS: Broker[] = [
     id: "data-axle",
     name: "Data Axle",
     category: "marketing",
-    blurb: "Marketing-data company. Ask them to stop using your information.",
+    blurb: "Marketing-data company. Ask them to stop using your information. This also removes you from DonorBase.",
     optOutUrl: "https://www.data-axle.com/privacy-rights-request/",
     homeUrl: "https://www.data-axle.com/",
     steps: [
@@ -961,7 +965,7 @@ export const BROKERS: Broker[] = [
     id: "deep-sync",
     name: "Deep Sync",
     category: "marketing",
-    blurb: "Marketing-data company. Use the privacy request page.",
+    blurb: "Marketing-data company. Use the privacy request page. This also removes you from AccuData, ASL Marketing, and Compact.",
     optOutUrl: "https://deepsync.com/privacy-request",
     homeUrl: "https://deepsync.com/",
     steps: [
@@ -2303,6 +2307,7 @@ export const BROKERS: Broker[] = [
     lastVerified: CHECKED,
     verification: "ok",
   },
+  ...EXTRA_BROKERS,
 ];
 
 /** Call registry and complaint forms. They are cards in the Spam Calls & Junk Mail filter. */
@@ -2339,7 +2344,7 @@ export const STATE_LIMITED_IDS = [
   "fifty",
 ] as const;
 
-export const TOOL_FILTERS = ["all", "people-search", "spam", "marketing", "search", "nonpublic"] as const;
+export const TOOL_FILTERS = ["all", "people-search", "spam", "marketing", "identity", "search", "nonpublic"] as const;
 export type ToolFilter = (typeof TOOL_FILTERS)[number];
 
 const FILTER_ALIASES: Record<string, ToolFilter> = {
@@ -2351,6 +2356,9 @@ const FILTER_ALIASES: Record<string, ToolFilter> = {
   mail: "spam",
   resources: "spam",
   marketing: "marketing",
+  identity: "identity",
+  credit: "identity",
+  "credit-freeze": "identity",
   search: "search",
   "search-engines": "search",
   nonpublic: "nonpublic",
@@ -2367,6 +2375,7 @@ export const FILTER_LABELS: Record<ToolFilter, string> = {
   "people-search": "People-Search Sites",
   spam: "Spam Calls & Junk Mail",
   marketing: "Marketing Data Brokers",
+  identity: "Identity",
   search: "Search Engines",
   nonpublic: "Non-public brokers",
 };
@@ -2382,8 +2391,9 @@ export function brokersByCategory(category: Category): Broker[] {
   return BROKERS.filter((broker) => broker.category === category);
 }
 
-/** People-search, marketing, and email-only brokers can take a written request. Spam tools and search engines do not. */
+/** People-search, marketing, and email-only brokers can take a written request. Spam tools, search engines, and credit-freeze cards do not. */
 export function acceptsLetter(broker: Broker): boolean {
+  if (broker.category === "identity" || broker.id === "marketing-data-brokers") return false;
   return broker.category === "people-search" || broker.category === "marketing" || broker.category === "nonpublic";
 }
 

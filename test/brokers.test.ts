@@ -65,10 +65,12 @@ describe("broker list", () => {
       expect(broker.id).toMatch(/^[a-z0-9-]{2,40}$/);
       for (const key of REQUIRED) expect(broker[key]).not.toBeUndefined();
       expect(["easy", "medium", "hard"]).toContain(broker.difficulty);
-      expect(["people-search", "spam", "marketing", "search", "nonpublic"]).toContain(broker.category);
+      expect(["people-search", "spam", "marketing", "search", "nonpublic", "identity"]).toContain(broker.category);
       expect(["ok", "blocked", "failed"]).toContain(broker.verification);
       if (broker.category === "nonpublic") {
         expect(broker.optOutUrl.startsWith("mailto:")).toBe(true);
+      } else if (broker.optOutUrl.startsWith("/")) {
+        expect(broker.id).toBe("marketing-data-brokers");
       } else {
         expect(broker.optOutUrl.startsWith("https://")).toBe(true);
       }
@@ -144,11 +146,79 @@ describe("broker list", () => {
       "semcasting",
       "shopalyst",
       "site-impact",
+      "allpeople",
+      "america-phone-book",
+      "clustal",
+      "namesandfacts",
+      "peoplesearchexpert",
+      "united-states-phone-book",
+      "realtyhop",
+      "freebackgroundcheck-org",
+      "verifyrecords",
+      "usrecords",
+      "usatrace",
+      "floridaparcels",
+      "yasni",
+      "aidentified",
+      "terminus",
+      "ad-direct",
+      "alesco",
+      "altair-data",
+      "anchor-computer",
+      "arkeero",
+      "awl",
+      "censia",
+      "clay",
+      "cybba",
+      "datasys",
+      "definitive-healthcare",
+      "deluxe",
+      "demyst",
+      "dice",
+      "digital-media-solutions",
+      "dynata",
+      "ekata",
+      "ermes",
+      "fetcher",
+      "fideo",
+      "first-direct",
+      "focus-usa",
+      "gadsme",
+      "grassroots-analytics",
+      "healthwise-data",
+      "helix-campaigns",
+      "insurance-marketing-hub",
+      "key-marketing-advantage",
+      "leadpost",
+      "lighthouse-list",
+      "little-brook-media",
+      "liveintent",
+      "m1-data",
+      "mailing-lists",
+      "mediawallah",
+      "missionwired",
+      "monitorbase",
+      "qualfon",
+      "ray-insights",
+      "sentilink",
+      "share-local-media",
+      "sheerid",
+      "snov",
+      "source-path",
+      "sourceit",
+      "spectrum-lists",
+      "speedeon",
+      "stirista",
+      "telephone-lists",
+      "true-blue-analytics",
+      "us-data-corporation",
+      "us-marketing-group",
+      "winr-data",
     ]);
     const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
     expect(spokeo?.letterRecommended).toBe(false);
     for (const broker of BROKERS) {
-      if (broker.category === "spam" || broker.category === "search") {
+      if (broker.category === "spam" || broker.category === "search" || broker.category === "identity") {
         expect(broker.letterRecommended).toBe(false);
       }
     }
@@ -289,7 +359,10 @@ describe("broker list", () => {
     for (const id of ["courtrecords-us", "recordsfinder", "staterecords", "searchquarry", "propertychecker", "courtcasefinder"]) {
       expect(BROKERS.find((broker) => broker.id === id)?.stateLimited).toBe(true);
     }
-    expect(BROKERS.some((broker) => broker.id === "stirista" || broker.name.startsWith("DROPPED"))).toBe(false);
+    expect(BROKERS.some((broker) => broker.name.startsWith("DROPPED"))).toBe(false);
+    expect(BROKERS.find((broker) => broker.id === "stirista")?.optOutUrl).toBe(
+      "https://www.stirista.com/privacy-policy/",
+    );
     const emailOnly = [
       ["melissa", "consumerrequest@melissa.com"],
       ["affinity-answers", "dataprivacy@affinityanswers.com"],
@@ -349,7 +422,7 @@ describe("broker list", () => {
     expect(BROKERS.find((broker) => broker.id === "postie")?.optOutUrl).toBe("https://optout.postie.com/");
     expect(BROKERS.find((broker) => broker.id === "datafy")?.steps.join(" ")).toContain("mobile advertising ID");
     for (const id of ["anchor-computer", "sheerid", "idm", "ray-insights", "revoptimal", "adelement"]) {
-      expect(BROKERS.some((broker) => broker.id === id)).toBe(false);
+      expect(BROKERS.some((broker) => broker.id === id), id).toBe(true);
     }
   });
 
@@ -361,12 +434,58 @@ describe("broker list", () => {
     expect(parseToolFilter("people")).toBe("people-search");
     expect(parseToolFilter("nonpublic")).toBe("nonpublic");
     expect(parseToolFilter("non-public")).toBe("nonpublic");
+    expect(parseToolFilter("identity")).toBe("identity");
+    expect(parseToolFilter("credit-freeze")).toBe("identity");
     expect(parseToolFilter("nope")).toBe("all");
     expect(FILTER_LABELS.spam).toBe("Spam Calls & Junk Mail");
     expect(FILTER_LABELS["people-search"]).toBe("People-Search Sites");
     expect(FILTER_LABELS.marketing).toBe("Marketing Data Brokers");
     expect(FILTER_LABELS.search).toBe("Search Engines");
     expect(FILTER_LABELS.nonpublic).toBe("Non-public brokers");
+    expect(FILTER_LABELS.identity).toBe("Identity");
+  });
+
+  it("adds checked people-search sites, marketing cards, and identity freezes", () => {
+    const first = BROKERS.find((broker) => broker.id === "freepeopledirectory");
+    const eye = BROKERS.find((broker) => broker.id === "privateeye");
+    expect(first?.category).toBe("people-search");
+    expect(first?.verification).toBe("ok");
+    expect(first?.optOutUrl).toBe("https://www.freepeopledirectory.com/optout");
+    expect(eye?.verification).toBe("blocked");
+    expect(eye?.blurb.toLowerCase()).toContain("do this one first");
+
+    expect(BROKERS.find((broker) => broker.id === "whitepages")?.blurb).toContain("411.com");
+    expect(BROKERS.find((broker) => broker.id === "whitepages")?.blurb).toContain("PeopleSearch.com");
+    expect(BROKERS.find((broker) => broker.id === "spokeo")?.blurb).toContain("PeopleWin");
+    expect(BROKERS.find((broker) => broker.id === "infotracer")?.blurb).toContain("Phonenumbers.org");
+    expect(BROKERS.find((broker) => broker.id === "infotracer")?.blurb).toContain("InfoPay");
+    expect(BROKERS.find((broker) => broker.id === "mylife")?.blurb).toContain("Reunion");
+    expect(BROKERS.find((broker) => broker.id === "deep-sync")?.blurb).toContain("AccuData");
+    expect(BROKERS.find((broker) => broker.id === "data-axle")?.blurb).toContain("DonorBase");
+    for (const sister of ["411", "peoplewin", "phonenumbers", "reunion", "infopay", "accudata"]) {
+      expect(BROKERS.some((broker) => broker.id === sister)).toBe(false);
+    }
+
+    const guide = BROKERS.find((broker) => broker.id === "marketing-data-brokers");
+    expect(guide?.category).toBe("marketing");
+    expect(guide?.name).toBe("Marketing data brokers");
+    const marketing = BROKERS.filter((broker) => broker.category === "marketing");
+    expect(marketing[0]?.id).not.toBe("marketing-data-brokers");
+    expect(marketing.some((broker) => broker.id === "marketing-data-brokers")).toBe(true);
+
+    const identity = BROKERS.filter((broker) => broker.category === "identity").map((broker) => broker.id);
+    expect(identity).toEqual([
+      "equifax-freeze",
+      "experian-freeze",
+      "transunion-freeze",
+      "innovis-freeze",
+      "chexsystems-freeze",
+      "nctue-freeze",
+      "irs-ip-pin",
+      "family-credit-freeze",
+    ]);
+    expect(BROKERS.find((broker) => broker.id === "transunion-freeze")?.verification).toBe("blocked");
+    expect(BROKERS.find((broker) => broker.id === "equifax-marketing")?.category).toBe("marketing");
   });
 
   it("builds a Spokeo search link and phone lookups", () => {

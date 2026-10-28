@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { CreditFreezePage } from "./pages/CreditFreeze";
 import { FaqPage } from "./pages/Faq";
 import { HomePage } from "./pages/Home";
 import { LettersPage } from "./pages/Letters";
@@ -17,6 +18,7 @@ export function App() {
       <Route element={<Layout />}>
         <Route index element={<HomePage />} />
         <Route path="privacy-tool" element={<PrivacyToolPage />} />
+        <Route path="credit-freeze" element={<CreditFreezePage />} />
         <Route path="checklist" element={<LegacyChecklistRedirect />} />
         <Route path="spam" element={<Navigate to="/privacy-tool?filter=spam" replace />} />
         <Route path="letters" element={<LettersPage />} />

@@ -59,6 +59,16 @@ export function HomePage() {
         </Link>
       </div>
 
+      <section className="panel" aria-labelledby="freeze-title">
+        <h2 id="freeze-title">Freeze your credit</h2>
+        <p>
+          A credit freeze is free by law. It stops a thief from opening a new card or loan in your
+          name. The <Link to="/credit-freeze">credit freeze guide</Link> walks through Equifax,
+          Experian, and TransUnion, plus a few optional free extras. You can check them off under{" "}
+          <Link to="/privacy-tool?filter=identity">Identity</Link> in the Privacy Tool.
+        </p>
+      </section>
+
       <section className="panel" aria-labelledby="also-title">
         <h2 id="also-title">Spam Calls and Junk Mail</h2>
         <p>

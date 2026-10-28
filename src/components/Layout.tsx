@@ -4,6 +4,7 @@ import { SavedDataProvider } from "../lib/storage";
 const LINKS = [
   { to: "/", label: "Home", end: true },
   { to: "/privacy-tool", label: "Privacy Tool", end: false },
+  { to: "/credit-freeze", label: "Credit Freeze", end: false },
   { to: "/letters", label: "Letters", end: false },
   { to: "/faq", label: "FAQ", end: false },
   { to: "/privacy", label: "Privacy", end: false },
