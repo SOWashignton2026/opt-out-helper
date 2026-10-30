@@ -44,11 +44,15 @@ export function PrivacyToolPage() {
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return BROKERS.filter((broker) => {
+    const rows = BROKERS.filter((broker) => {
       if (filter !== "all" && broker.category !== filter) return false;
       if (!needle) return true;
       return `${broker.name} ${broker.blurb}`.toLowerCase().includes(needle);
     });
+    if (filter === "marketing") {
+      rows.sort((a, b) => Number(b.id === "marketing-data-brokers") - Number(a.id === "marketing-data-brokers"));
+    }
+    return rows;
   }, [filter, query]);
 
   const percent = total === 0 ? 0 : Math.round((handled / total) * 100);
@@ -380,6 +384,11 @@ function BrokerCard({
         {broker.letterRecommended ? (
           <Link className="button button-quiet" to={`/letters?broker=${broker.id}`}>
             Write a letter
+          </Link>
+        ) : null}
+        {broker.category === "identity" ? (
+          <Link className="button button-quiet" to="/credit-freeze">
+            Read the freeze guide
           </Link>
         ) : null}
       </div>

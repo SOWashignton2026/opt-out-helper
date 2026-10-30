@@ -42,7 +42,7 @@ export function FaqPage() {
           <li>Use a separate email just for opt-outs, so the confirmation links stay in one inbox.</li>
           <li>Do not pay the people-search site to “remove” you. The removal form is free.</li>
           <li>Save the confirmation email or a screenshot, then mark the row Submitted.</li>
-          <li>Start with Spokeo, BeenVerified, Whitepages, and the PeopleConnect sites. They show up most often.</li>
+          <li>Start with FreePeopleDirectory, PrivateEye, Spokeo, BeenVerified, Whitepages, and the PeopleConnect sites.</li>
           <li>After a site says you are removed, mark it Removed so you can see it in your progress.</li>
         </ul>
       </section>
@@ -76,6 +76,16 @@ export function FaqPage() {
           <li>Send a letter requesting removal of your information</li>
           <li>Check the site later. Forms and rules change periodically.</li>
         </ul>
+      </section>
+
+      <section>
+        <h2>Why are arrest sites and “people records” sites missing?</h2>
+        <p>
+          State arrest and warrant sites are not on this list. They do not offer an opt-out, and
+          they only matter if an arrest record already exists. The old People Records .org sites
+          were offline when this list was checked in October 2026, so there is nothing to remove
+          there either.
+        </p>
       </section>
 
       <section>
