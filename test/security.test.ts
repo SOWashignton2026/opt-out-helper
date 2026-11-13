@@ -56,7 +56,7 @@ describe("security headers", () => {
       include: string[];
       exclude: string[];
     };
-    expect(routes).toEqual({ version: 1, include: ["/api/letter"], exclude: [] });
+    expect(routes).toEqual({ version: 1, include: ["/api/letter", "/api/visits"], exclude: [] });
   });
 
   it("keeps the account subdomain out of public copy", () => {

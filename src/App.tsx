@@ -6,6 +6,7 @@ import { HomePage } from "./pages/Home";
 import { LettersPage } from "./pages/Letters";
 import { PrivacyPage } from "./pages/Privacy";
 import { PrivacyToolPage } from "./pages/PrivacyTool";
+import { WhatsNewPage } from "./pages/WhatsNew";
 
 function LegacyChecklistRedirect() {
   const { hash, search } = useLocation();
@@ -25,6 +26,7 @@ export function App() {
         <Route path="resources" element={<Navigate to="/privacy-tool?filter=spam" replace />} />
         <Route path="faq" element={<FaqPage />} />
         <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="whats-new" element={<WhatsNewPage />} />
         <Route path="*" element={<HomePage />} />
       </Route>
     </Routes>

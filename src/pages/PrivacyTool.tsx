@@ -9,6 +9,7 @@ import {
   type ToolFilter,
 } from "../../shared/brokers";
 import { buildSearchUrl, selfSearchUrl } from "../../shared/links";
+import { SAFETY_TIPS } from "../../shared/guidance";
 import { CLEAR_DATA_CONFIRM, SHARED_COMPUTER_TIP, type SavedData, type Status } from "../../shared/progress";
 import { PRIVACY_LAWS } from "../../shared/privacy-laws";
 import { US_STATES } from "../../shared/states";
@@ -95,6 +96,15 @@ export function PrivacyToolPage() {
           reference.
         </p>
       </header>
+
+      <details className="panel tips">
+        <summary>Safety tips before you start (updated November 13, 2026)</summary>
+        <ul>
+          {SAFETY_TIPS.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
+        </ul>
+      </details>
 
       <section className="panel" aria-labelledby="progress-title">
         <div className="split">
@@ -340,6 +350,7 @@ function BrokerCard({
         <div className="tags">
           <span className={`tag tag-${broker.difficulty}`}>{broker.difficulty}</span>
           {broker.stateLimited ? <span className="tag">Privacy-law states</span> : null}
+          {broker.residentsOnly ? <span className="tag tag-hard">{broker.residentsOnly}</span> : null}
           {broker.linkNotVerified ? <span className="flag">Link not yet verified</span> : null}
           {!broker.linkNotVerified && broker.verification === "failed" ? (
             <span className="flag">Link not verified</span>
@@ -347,6 +358,11 @@ function BrokerCard({
         </div>
       </header>
       <p>{broker.blurb}</p>
+      {broker.warning ? (
+        <p className="warning" role="note">
+          <strong>Careful:</strong> {broker.warning}
+        </p>
+      ) : null}
       {broker.stateLimited ? (
         <p className="hint">Often only available if you live in {LIMITED_STATE_NAMES}.</p>
       ) : null}

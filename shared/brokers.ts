@@ -17,6 +17,7 @@
  * state-privacy deletion request. Simple web forms stay false.
  */
 import { EXTRA_BROKERS, PRIORITY_BROKERS } from "./more-brokers";
+import { NOV13_BROKERS } from "./nov-2026-brokers";
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type Category = "people-search" | "spam" | "marketing" | "search" | "nonpublic" | "identity";
@@ -42,6 +43,10 @@ export type Broker = {
   letterRecommended: boolean;
   /** The site often refuses people outside states with a consumer privacy law. */
   stateLimited?: boolean;
+  /** Set when a form is only for residents of certain places, e.g. "California residents only". */
+  residentsOnly?: string;
+  /** A short safety warning shown on the card, such as "do not enter a card number". */
+  warning?: string;
   /** True when the opt-out link itself could not be confirmed. */
   linkNotVerified?: boolean;
   /** Privacy inbox for email-only brokers. The card copies this address. */
@@ -55,6 +60,8 @@ export type Broker = {
 const CHECKED = "2026-10-19";
 const RECHECKED = "2026-10-22";
 const BATCH4 = "2026-10-23";
+/** Privacy bot findings from Oct 23 to Nov 12, applied on Nov 13, 2026. */
+export const NOV13 = "2026-11-13";
 const DELETE_SUBJECT = "Request to delete my personal information";
 
 function privacyMailto(address: string): string {
@@ -867,15 +874,16 @@ export const BROKERS: Broker[] = [
       "Search your name and address and choose the records that are you.",
       "Submit the request with an email you can open.",
       "Click the confirmation link if they send one.",
+      "Some requests are sent to the [LexisNexis consumer portal](https://consumer.risk.lexisnexis.com/help), which may ask for an ID or proof of address. You can skip an ID upload if you are not comfortable with it.",
     ],
     difficulty: "medium",
     requiresEmail: true,
-    requiresId: false,
+    requiresId: true,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: RECHECKED,
+    lastVerified: NOV13,
     verification: "ok",
-    notes: "The address redirects to the LexisNexis Risk Solutions consumer opt-out.",
+    notes: "The address redirects to the LexisNexis Risk Solutions consumer opt-out. The consumer portal was named in a Nov 6, 2026 reply.",
   },
   {
     id: "data-axle",
@@ -923,54 +931,57 @@ export const BROKERS: Broker[] = [
     id: "experian-marketing",
     name: "Experian marketing",
     category: "marketing",
-    blurb: "Opt out of Experian marketing. This is not a credit freeze.",
-    optOutUrl: "https://www.experian.com/privacy/opting_out",
+    blurb: "Opt out of Experian marketing through their Privacy Rights Portal. This is not a credit freeze.",
+    optOutUrl: "https://consumerprivacy.experian.com/",
     homeUrl: "https://www.experian.com/",
     steps: [
-      "Open the Experian marketing opt-out.",
-      "Follow the form for marketing offers. This does not freeze your credit.",
-      "Submit your name and address.",
+      "Open the Experian Privacy Rights Portal and choose the request to delete or opt out of marketing. This does not freeze your credit.",
+      "Expect identity questions built from your credit file, not just your name and address. Answer only what you are comfortable with.",
+      "If the quiz does not work for you, email [optout@experian.com](mailto:optout@experian.com) or call 1-833-210-4615.",
       "Watch for a confirmation email and use the link if they send one.",
+      "The older [opting-out page](https://www.experian.com/privacy/opting_out) still exists, but Experian said not to rely on it alone.",
+    ],
+    difficulty: "hard",
+    requiresEmail: true,
+    requiresId: true,
+    requiresPhone: false,
+    letterRecommended: false,
+    lastVerified: NOV13,
+    verification: "ok",
+    notes: "Experian's Nov 9, 2026 reply pointed to the Privacy Rights Portal. The older opting-out page asked for a credit-file identity quiz on Oct 28.",
+  },
+  {
+    id: "corelogic",
+    name: "CoreLogic",
+    category: "marketing",
+    blurb: "Property-data company, now called Cotality. Use the Cotality online privacy portal.",
+    optOutUrl: "https://www.cotality.com/legal/online-privacy-portal",
+    homeUrl: "https://www.cotality.com/",
+    steps: [
+      "CoreLogic now uses the name Cotality. Open the Cotality online privacy portal.",
+      "Choose the request to delete your information and opt out of its sale, then submit it with an email you can open.",
+      "You can also email [privacy@cotality.com](mailto:privacy@cotality.com) with the same request.",
+      "Watch for a confirmation email and follow the link if they send one.",
     ],
     difficulty: "medium",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: RECHECKED,
+    lastVerified: NOV13,
     verification: "ok",
-  },
-  {
-    id: "corelogic",
-    name: "CoreLogic",
-    category: "marketing",
-    blurb: "Property-data company, now called Cotality. Use their privacy policy or email.",
-    optOutUrl: "https://www.cotality.com/legal/privacy-policy",
-    homeUrl: "https://www.cotality.com/",
-    steps: [
-      "CoreLogic now uses the name Cotality. Open the Cotality privacy policy.",
-      "Email [privacy@cotality.com](mailto:privacy@cotality.com) and ask them to delete your information from marketing files.",
-      "Watch for a confirmation email and follow the link if they send one.",
-    ],
-    difficulty: "hard",
-    requiresEmail: true,
-    requiresId: false,
-    requiresPhone: false,
-    letterRecommended: false,
-    lastVerified: RECHECKED,
-    verification: "ok",
-    notes: "The old https://www.corelogic.com/privacy-center/ address returned 404. The Cotality privacy policy loaded.",
+    notes: "Cotality's Nov 6, 2026 reply named the online privacy portal. It loaded on Nov 13. The old corelogic.com privacy-center address returned 404.",
   },
   {
     id: "deep-sync",
     name: "Deep Sync",
     category: "marketing",
-    blurb: "Marketing-data company. Use the privacy request page. This also removes you from AccuData, ASL Marketing, and Compact.",
-    optOutUrl: "https://deepsync.com/privacy-request",
+    blurb: "Marketing-data company. Use the privacy request page. This also covers AccuData, ASL Marketing, CBSS, HomeData, and Compact.",
+    optOutUrl: "https://privacy.deepsync.com/",
     homeUrl: "https://deepsync.com/",
     steps: [
-      "Open the Deep Sync privacy request.",
-      "Enter your name and contact details and ask them to delete your information.",
+      "Open the Deep Sync privacy request page.",
+      "Enter your name and contact details and ask them to delete your information. One request covers AccuData, ASL Marketing, CBSS, and HomeData.",
       "Submit the form with an email you can open.",
       "Click the confirmation link if they send one.",
     ],
@@ -979,8 +990,9 @@ export const BROKERS: Broker[] = [
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: RECHECKED,
+    lastVerified: NOV13,
     verification: "ok",
+    notes: "Deep Sync's Nov 10, 2026 reply named privacy.deepsync.com. The older deepsync.com/privacy-request page also still loaded on Nov 13.",
   },
   {
     id: "google-results-about-you",
@@ -990,10 +1002,11 @@ export const BROKERS: Broker[] = [
     optOutUrl: "https://myactivity.google.com/results-about-you",
     homeUrl: "https://www.google.com/",
     steps: [
-      "Open Results about you and sign in to the Google account you use.",
+      "Open Results about you and sign in to your own Google account. Each person has to do this in their own account.",
       "Search your name, then review results that show your phone, address, or email.",
       "Request removal for the results that are your personal contact details.",
       "Watch your email for a confirmation and follow the link if Google sends one.",
+      "Google may later email you \"results about you\" alerts when new results show up. Review them the same way.",
     ],
     difficulty: "easy",
     requiresEmail: true,
@@ -1029,11 +1042,11 @@ export const BROKERS: Broker[] = [
     name: "SearchBug",
     category: "people-search",
     blurb: "People search. The opt-out works in every state and does not ask for a photo ID.",
-    optOutUrl: "https://www.searchbug.com/privacy-requests.aspx",
+    optOutUrl: "https://www.searchbug.com/ccpa.aspx#DoNoSell",
     homeUrl: "https://www.searchbug.com/",
     searchUrlTemplate: "https://www.searchbug.com/peoplefinder/",
     steps: [
-      "Open the privacy request form.",
+      "Open the SearchBug request form. It opens at the Do Not Sell section. Click Submit Request.",
       "Ask them to remove your information. You do not need a photo ID, and this works nationwide.",
       "Submit the form with an email you can open.",
       "Click the confirmation link if they send one. Their people search does not fill in your name from this site.",
@@ -1159,24 +1172,24 @@ export const BROKERS: Broker[] = [
     id: "spydialer",
     name: "SpyDialer",
     category: "people-search",
-    blurb: "Reverse-phone site. The privacy page explains how to stop your information from appearing.",
-    optOutUrl: "https://www.spydialer.com/privacy-rights",
+    blurb: "Reverse-phone site. Use the Do Not Sell / opt-out form so your number stops showing.",
+    optOutUrl: "https://spydialer.com/Consumers/",
     homeUrl: "https://www.spydialer.com/",
     searchUrlTemplate: "https://www.spydialer.com/",
     steps: [
-      "Open the SpyDialer privacy page.",
-      "Follow the opt-out so your number stops showing on the site.",
-      "Submit the form with an email you can open.",
-      "Click the confirmation link if they send one.",
+      "Open the SpyDialer opt-out form.",
+      "Enter your phone number and an email you can open, then submit.",
+      "Click the confirmation link in their email within 24 hours. The link expires.",
+      "Do not send privacy requests to SpyDialer's info@ address. They said it is not for privacy requests.",
     ],
     difficulty: "easy",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: true,
     letterRecommended: false,
-    lastVerified: RECHECKED,
+    lastVerified: NOV13,
     verification: "ok",
-    notes: "The homepage is a phone-number lookup. It does not take a prefilled number in the address.",
+    notes: "Updated Nov 13, 2026: /Consumers/ is the Do Not Sell / Right to Opt-out form (SpyDialer's Nov 9 reply). The old /privacy-rights page is a general rights menu.",
   },
   {
     id: "privatereports",
@@ -1589,22 +1602,24 @@ export const BROKERS: Broker[] = [
     id: "apollo",
     name: "Apollo.io",
     category: "marketing",
-    blurb: "Work-contact database. Useful if a work profile lists you. The form mentions California and the EU, and it removes the profile.",
-    optOutUrl: "https://www.apollo.io/privacy-policy/remove",
+    blurb: "Work-contact database. Only useful if a work profile lists you. The privacy center is built around California and European privacy laws.",
+    optOutUrl: "https://www.apollo.io/company/privacy-center/",
     homeUrl: "https://www.apollo.io/",
     steps: [
-      "Open the Apollo removal form.",
-      "Search for your work profile and ask them to remove it.",
-      "The page mentions California and the EU. Submitting it still removes the profile.",
+      "Open the Apollo privacy center.",
+      "The request form asks for a work email. If you do not have a work profile there, skip this card.",
+      "The form is built around California and European privacy laws. Do not say you live somewhere you do not.",
       "Watch for a confirmation email and use the link if they send one.",
     ],
-    difficulty: "easy",
+    difficulty: "medium",
     requiresEmail: true,
     requiresId: false,
     requiresPhone: false,
     letterRecommended: false,
-    lastVerified: RECHECKED,
+    lastVerified: NOV13,
     verification: "ok",
+    residentsOnly: "Built for California and EU law",
+    notes: "Apollo's Nov 10, 2026 reply named the privacy center. The Privacy bot skipped it on Nov 11 because it required a work email.",
   },
   {
     id: "uplead",
@@ -2057,12 +2072,13 @@ export const BROKERS: Broker[] = [
     id: "media-resource-group",
     name: "Media Resource Group",
     category: "marketing",
-    blurb: "Marketing company. The opt-out page is a form on their site.",
+    blurb: "Marketing company behind WelcomeHomeowner. The opt-out page is a form on their site.",
     optOutUrl: "https://www.mrginc.com/opt-out",
     steps: [
       "Open the Media Resource Group opt-out.",
       "Fill in the form. The page needs JavaScript.",
-      "Submit it and watch for a confirmation email.",
+      "Submit it and click the confirmation link soon. Those links can expire in about 24 hours.",
+      "If the link opens a general contact page instead of confirming, email [admin@welcomehomeowner.com](mailto:admin@welcomehomeowner.com) and ask them to remove you.",
     ],
     difficulty: "easy",
     requiresEmail: true,
@@ -2308,6 +2324,7 @@ export const BROKERS: Broker[] = [
     verification: "ok",
   },
   ...EXTRA_BROKERS,
+  ...NOV13_BROKERS,
 ];
 
 /** Call registry and complaint forms. They are cards in the Spam Calls & Junk Mail filter. */

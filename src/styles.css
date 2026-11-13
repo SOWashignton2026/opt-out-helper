@@ -100,6 +100,21 @@ a { color: var(--accent-dark); }
 }
 
 .footer p { margin: 4px 0; }
+.footer .visits { font-size: 0.875rem; }
+
+.warning {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.tips summary { cursor: pointer; font-weight: 600; }
+.tips ul { margin: 8px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+
+.update h2 { font-size: 1.15rem; }
+.update ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
 
 h1 { font-size: clamp(1.8rem, 3vw, 2.4rem); line-height: 1.15; margin: 0 0 12px; }
 h2 { font-size: 1.25rem; margin: 0 0 8px; }
