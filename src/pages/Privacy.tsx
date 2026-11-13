@@ -5,7 +5,8 @@ export function PrivacyPage() {
       <p>This site is built so your personal details stay on your device.</p>
       <p>
         This site sets one necessary cookie. It only counts the 10 free letters per day. There is
-        no tracking, no ads, and no analytics. Find me data stays in this browser.
+        no tracking, no ads, and no analytics. Find me data stays in this browser. We count visits
+        as one anonymous number; nothing about you is stored.
       </p>
 
       <section>
@@ -41,6 +42,21 @@ export function PrivacyPage() {
           date, and a count in Cloudflare KV. If your browser does not send the cookie, the count
           uses a hash of your IP address instead. The cookie is not your name. Clearing the
           Privacy Tool does not reset the count.
+        </p>
+      </section>
+
+      <section>
+        <h2>The visit counter</h2>
+        <p>
+          We count visits as one anonymous number; nothing about you is stored. The first page you
+          open in a browser session asks our own server to add one to a single total in Cloudflare
+          KV. Your browser keeps a plain “counted” mark in sessionStorage, which is erased when you
+          close the tab, so the same session is not counted twice.
+        </p>
+        <p>
+          The counter does not set a cookie and does not save your IP address, browser, device,
+          location, or which pages you read. It does not use any outside analytics service. The
+          total is shown on the What's New page.
         </p>
       </section>
 

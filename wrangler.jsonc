@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "privacy",
+  // Cloudflare Pages project behind https://shieldme.pages.dev
+  "name": "shieldme",
   "pages_build_output_dir": "./dist",
   // Same runtime date as the previous Worker so letter behavior stays the same.
   "compatibility_date": "2026-10-19",
@@ -9,20 +10,49 @@
   "dev": {
     "port": 8787
   },
+  // Top level = production (branch main).
   "vars": {
     "GROQ_MODEL": "openai/gpt-oss-120b",
     "AI_DAILY_LIMIT_PER_VISITOR": "10",
     // Sample letters for local preview. Real deploys must stay "false".
     "MOCK_GROQ": "false"
   },
-  // Daily AI cap. The Workers Rate Limiting binding only allows a 10 or 60
-  // second window, so it cannot count "10 letters per day". This KV namespace
-  // stores a hashed visitor id, the UTC date, and a number. Nothing else.
-  // The namespace already exists. Do not create a second one.
+  // AI_USAGE: daily AI cap. The Workers Rate Limiting binding only allows a 10
+  // or 60 second window, so it cannot count "10 letters per day". This KV
+  // namespace stores a hashed visitor id, the UTC date, and a number. Nothing else.
+  // VISITS: the anonymous visit counter. One key, "visits:total", holding one number.
+  // Production uses the "shieldme-visits" namespace. It only takes effect on a
+  // production deploy (--branch main), which needs the owner's approval.
   "kv_namespaces": [
     {
       "binding": "AI_USAGE",
       "id": "6af39e158b4d4adda9dde57614983066"
+    },
+    {
+      "binding": "VISITS",
+      "id": "d4687de3df88473e9740cd9af65e4d97"
     }
-  ]
+  ],
+  "env": {
+    // Preview branches (for example test-whats-new). These keys are not
+    // inherited from the top level, so they are repeated here.
+    "preview": {
+      "vars": {
+        "GROQ_MODEL": "openai/gpt-oss-120b",
+        "AI_DAILY_LIMIT_PER_VISITOR": "10",
+        "MOCK_GROQ": "false"
+      },
+      "kv_namespaces": [
+        {
+          "binding": "AI_USAGE",
+          "id": "6af39e158b4d4adda9dde57614983066"
+        },
+        {
+          // "shieldme-visits-preview": test counts never mix with the real total.
+          "binding": "VISITS",
+          "id": "cdf3a80eb71349438f53133fb92877d9"
+        }
+      ]
+    }
+  }
 }

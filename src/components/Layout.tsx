@@ -1,16 +1,20 @@
 import { NavLink, Outlet } from "react-router-dom";
+import { formatVisits } from "../../shared/visits";
 import { SavedDataProvider } from "../lib/storage";
+import { useVisitTotal } from "../lib/visits";
 
 const LINKS = [
   { to: "/", label: "Home", end: true },
   { to: "/privacy-tool", label: "Privacy Tool", end: false },
   { to: "/credit-freeze", label: "Credit Freeze", end: false },
   { to: "/letters", label: "Letters", end: false },
+  { to: "/whats-new", label: "What's New", end: false },
   { to: "/faq", label: "FAQ", end: false },
   { to: "/privacy", label: "Privacy", end: false },
 ];
 
 export function Layout() {
+  const visits = useVisitTotal();
   return (
     <SavedDataProvider>
     <div className="shell">
@@ -49,6 +53,11 @@ export function Layout() {
       <footer className="footer">
         <p>Not legal advice. Not affiliated with any listed site.</p>
         <p>Your name and progress stay in this browser.</p>
+        {visits !== null ? (
+          <p className="visits">
+            {formatVisits(visits)} · counted as one anonymous number, nothing about you is stored
+          </p>
+        ) : null}
       </footer>
     </div>
     </SavedDataProvider>

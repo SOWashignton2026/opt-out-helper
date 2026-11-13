@@ -160,11 +160,12 @@ describe("broker list", () => {
       "floridaparcels",
       "yasni",
       "aidentified",
+      "digital-segment",
+      "eprodirect",
       "terminus",
       "ad-direct",
       "alesco",
       "altair-data",
-      "anchor-computer",
       "arkeero",
       "awl",
       "censia",
@@ -214,6 +215,8 @@ describe("broker list", () => {
       "us-data-corporation",
       "us-marketing-group",
       "winr-data",
+      "callapp",
+      "youmail",
     ]);
     const spokeo = BROKERS.find((broker) => broker.id === "spokeo");
     expect(spokeo?.letterRecommended).toBe(false);
@@ -260,7 +263,7 @@ describe("broker list", () => {
     expect(BROKERS.find((broker) => broker.id === "google-results-about-you")?.category).toBe("search");
     expect(BROKERS.find((broker) => broker.id === "equifax-marketing")?.category).toBe("marketing");
     expect(BROKERS.find((broker) => broker.id === "corelogic")?.optOutUrl).toBe(
-      "https://www.cotality.com/legal/privacy-policy",
+      "https://www.cotality.com/legal/online-privacy-portal",
     );
     expect(BROKERS.find((broker) => broker.id === "corelogic")?.steps.join(" ")).toContain("privacy@cotality.com");
   });

@@ -84,7 +84,7 @@ npx wrangler pages deploy --project-name privacy --branch main
 
 Use `wrangler pages deploy`, not `wrangler deploy`. This app is a Pages project with a `functions/` directory. If Wrangler says it is delegating the command to Workers, stop and rerun that command with `--force` so the project stays on Pages. After the project exists, later deploys do not need `--force`.
 
-Static pages do not run a Function. `public/_routes.json` invokes a Function only for `/api/letter`, so page views stay on the free static tier. Only the letter API counts against the Functions request allowance.
+Static pages do not run a Function. `public/_routes.json` invokes a Function only for `/api/letter` and `/api/visits`, so page views stay on the free static tier. Only the letter API counts against the Functions request allowance.
 
 ## Secrets and bindings
 
@@ -134,8 +134,21 @@ Checked again on October 23, 2026. The Privacy Tool has a **Non-public brokers**
 - `shared/brokers.ts` — the list of sites. Edit this file to add one. When a step names a form or page, write it as `[opt-out form](https://example.com/optout)` so the Privacy Tool shows a link.
 - `src/` — the React pages.
 - `functions/api/letter.ts` — the `/api/letter` Pages Function.
+- `functions/api/visits.ts` — the `/api/visits` anonymous visit counter (see below).
+- `shared/whats-new.ts` — the What's New list. Add each new update at the top.
+- `shared/nov-2026-brokers.ts` — cards added November 13, 2026.
 - `public/` — the icon, security headers, and the `_routes.json` file that limits Functions to `/api/letter`.
+
+## Visit counter
+
+`/api/visits` keeps one number in the `VISITS` KV namespace under the key `visits:total`. `POST` adds one and `GET` reads the total. The browser posts once per session (a plain `pd_visit_counted=1` flag in sessionStorage) and only reads after that. The function sets no cookie, does not read or store IP addresses or user agents, and does not log. KV is not a lock, so two visits in the same second can count as one (a small undercount).
+
+- Preview branches bind `shieldme-visits-preview` (`cdf3a80eb71349438f53133fb92877d9`) through `env.preview` in `wrangler.jsonc`.
+- Production binds `shieldme-visits` (`d4687de3df88473e9740cd9af65e4d97`). That only takes effect on a production deploy.
+- Each counted visit is one KV write. The free plan allows 1,000 KV writes per day for the whole account, shared with the AI letter limit.
+
+The Cloudflare Pages project is now `shieldme` (<https://shieldme.pages.dev>), and `wrangler.jsonc` uses that name.
 
 ## Privacy in one paragraph
 
-The Privacy Tool lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. The server stores a hashed count for the 10-letter daily limit and does not log the letter. There are no ads and no third-party trackers. The site sets one necessary cookie for that count.
+The Privacy Tool lives in `localStorage`. The only server call with your details is the AI letter button, and that call exists only to ask Groq for the letter text. The server stores a hashed count for the 10-letter daily limit and does not log the letter. There are no ads and no third-party trackers. The site sets one necessary cookie for that count. The visit counter is one anonymous number with no cookie and nothing about the visitor stored.

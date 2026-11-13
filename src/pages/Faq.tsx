@@ -1,4 +1,5 @@
 import { PRIVACY_LAWS } from "../../shared/privacy-laws";
+import { SAFETY_TIPS } from "../../shared/guidance";
 import { US_STATES } from "../../shared/states";
 
 function lawStateName(code: string): string {
@@ -44,6 +45,15 @@ export function FaqPage() {
           <li>Save the confirmation email or a screenshot, then mark the row Submitted.</li>
           <li>Start with FreePeopleDirectory, PrivateEye, Spokeo, BeenVerified, Whitepages, and the PeopleConnect sites.</li>
           <li>After a site says you are removed, mark it Removed so you can see it in your progress.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>How do I stay safe while opting out?</h2>
+        <ul>
+          {SAFETY_TIPS.map((tip) => (
+            <li key={tip}>{tip}</li>
+          ))}
         </ul>
       </section>
 

@@ -34,6 +34,7 @@ import {
 } from "./credit-freeze";
 
 const ADDED = "2026-10-28";
+const NOV13 = "2026-11-13";
 
 type Seed = {
   id: string;
@@ -51,6 +52,9 @@ type Seed = {
   letterRecommended?: boolean;
   verification?: Verification;
   notes?: string;
+  residentsOnly?: string;
+  warning?: string;
+  lastVerified?: string;
 };
 
 function card(seed: Seed): Broker {
@@ -69,9 +73,11 @@ function card(seed: Seed): Broker {
     requiresId: seed.requiresId ?? false,
     requiresPhone: seed.requiresPhone ?? false,
     letterRecommended: seed.letterRecommended ?? false,
-    lastVerified: verification === "failed" ? null : ADDED,
+    lastVerified: verification === "failed" ? null : (seed.lastVerified ?? ADDED),
     verification,
     ...(seed.notes ? { notes: seed.notes } : {}),
+    ...(seed.residentsOnly ? { residentsOnly: seed.residentsOnly } : {}),
+    ...(seed.warning ? { warning: seed.warning } : {}),
   };
 }
 
@@ -152,13 +158,13 @@ export const PRIORITY_BROKERS: Broker[] = [
 
 const PEOPLE_FORMS: Broker[] = [
   ["backgroundcheckers", "Backgroundcheckers", "https://www.backgroundcheckers.net/opt-out", "Background-check style people search."],
-  ["checksecrets", "Checksecrets", "https://www.checksecrets.com/opt-out", "People-search site with an opt-out page."],
+  ["checksecrets", "Checksecrets", "https://www.checksecrets.com/api/helper/optOutLight/search", "People-search site with an opt-out page."],
   ["inmatessearcher", "InmatesSearcher", "https://www.inmatessearcher.com/opt-out", "People-search site aimed at inmate records. Use the opt-out if you are listed."],
-  ["mugshotlook", "MugshotLook", "https://www.mugshotlook.com/opt-out", "People-search site. Use the opt-out if a listing is you."],
+  ["mugshotlook", "MugshotLook", "https://www.mugshotlook.com/api/helper/optOutLight/search", "People-search site. Use the opt-out if a listing is you."],
   ["peoplesearch123", "PeopleSearch123", "https://www.peoplesearch123.com/opt-out", "People-search site with an opt-out page."],
   ["peoplesearchusa", "PeopleSearchUSA", "https://www.peoplesearchusa.org/opt-out", "People-search site with an opt-out page."],
   ["personsearchers", "PersonSearchers", "https://www.personsearchers.com/opt-out", "People-search site with an opt-out page."],
-  ["privaterecords-net", "PrivateRecords.net", "https://www.privaterecords.net/opt-out", "People-search site with an opt-out page."],
+  ["privaterecords-net", "PrivateRecords.net", "https://www.privaterecords.net/api/helper/optOutLight/search", "People-search site with an opt-out page."],
   ["publicsearcher", "PublicSearcher", "https://www.publicsearcher.com/opt-out", "People-search site with an opt-out page."],
   ["sealedrecords", "SealedRecords", "https://www.sealedrecords.net/opt-out", "People-search site with an opt-out page."],
   ["secretinfo", "SecretInfo", "https://www.secretinfo.org/opt-out", "People-search site with an opt-out page."],
@@ -180,17 +186,18 @@ const MORE_PEOPLE: Broker[] = [
     id: "searchusapeople",
     name: "SearchUSAPeople",
     category: "people-search",
-    blurb: "People-search site with a data-removal request page.",
-    optOutUrl: "https://www.searchusapeople.com/data-removal-request/",
+    blurb: "People-search site with no removal form of its own. Its removal page sends you to InfoTracer.",
+    optOutUrl: "https://infotracer.com/optout/",
     homeUrl: "https://www.searchusapeople.com/",
     steps: [
-      "Open the SearchUSAPeople data-removal page.",
-      "Follow the form for the listing that is you.",
-      "Use an email you can open.",
-      "Click the confirmation link if they send one.",
+      "SearchUSAPeople does not have its own form. Its [data-removal page](https://www.searchusapeople.com/data-removal-request/) says to use InfoTracer.",
+      "Open the InfoTracer opt-out and find the listing that is you.",
+      "Submit it with an email you can open, and click the confirmation link if they send one.",
+      "If you already did the InfoTracer card, you are done here. Mark both the same.",
     ],
     difficulty: "easy",
-    notes: "The data-removal page loaded.",
+    notes: "Rechecked Nov 13, 2026: the SearchUSAPeople removal page points to https://infotracer.com/optout/.",
+    lastVerified: NOV13,
   }),
   card({
     id: "idstrong",
@@ -282,9 +289,14 @@ const MORE_PEOPLE: Broker[] = [
     blurb: "People-search site. The opt-out page blocked an automated check.",
     optOutUrl: "https://lookify.io/opt-out",
     homeUrl: "https://lookify.io/",
-    steps: blockedForm("Lookify"),
+    steps: [
+      "Open the Lookify opt-out page in your browser. A security check stopped our automated visit. This is still the address they publish.",
+      "Search your name and open the listing that is you.",
+      "Lookify sends a one-time code by email or text. Enter it on the page to continue.",
+      "It may then ask for your state and an authorized-agent name. If you are doing this for yourself, enter your own name.",
+    ],
     verification: "blocked",
-    notes: "lookify.io/opt-out returned a Cloudflare check.",
+    notes: "lookify.io/opt-out returned a Cloudflare check. Code and authorized-agent steps are from the Privacy bot, Nov 8-11, 2026.",
   }),
   card({
     id: "revealphoneowner",
@@ -520,6 +532,8 @@ function marketingLetter(entry: {
   verification?: Verification;
   notes?: string;
   blocked?: boolean;
+  residentsOnly?: string;
+  warning?: string;
 }): Broker {
   const steps = entry.email
     ? entry.blocked
@@ -550,6 +564,8 @@ function marketingLetter(entry: {
     letterRecommended: true,
     verification: entry.verification ?? (entry.blocked ? "blocked" : "ok"),
     notes: entry.notes,
+    residentsOnly: entry.residentsOnly,
+    warning: entry.warning,
   });
 }
 
@@ -623,23 +639,36 @@ const MARKETING_FORMS: Broker[] = [
     homeUrl: "https://www.decisionlinks.com/",
     notes: "The opt-out page loaded.",
   }),
-  marketingForm({
+  card({
     id: "digital-segment",
     name: "Digital Segment",
-    blurb: "Marketing-data company. Use the consumer opt-out page.",
+    category: "marketing",
+    blurb: "Marketing-data company. Email or call them. The web form did not work when the Privacy bot tried it.",
     optOutUrl: "https://www.digitalsegment.com/about/opt-out/",
     homeUrl: "https://www.digitalsegment.com/",
     email: "info@digitalsegment.com",
-    notes: "The opt-out page loaded.",
+    steps: [
+      `Email ${mail("info@digitalsegment.com")} and ask them to opt you out and delete your information.`,
+      "Or call (610) 228-0906 and ask for the same thing.",
+      "Their opt-out page (the button below) also shows a form. Try it if it works for you. It sends a confirmation email you must click.",
+      "Save their reply. They say it takes about two weeks.",
+    ],
+    difficulty: "easy",
+    letterRecommended: true,
+    notes: "No working form was found on Nov 1, 2026 (Privacy bot). The page still lists the email and phone on Nov 13.",
   }),
-  marketingForm({
-    id: "eprodirect",
-    name: "EproDirect",
-    blurb: "Lead company. Use the do-not-sell page.",
-    optOutUrl: "https://www.eprodirect.com/do-not-sell-my-personal-information/",
-    homeUrl: "https://www.eprodirect.com/",
-    notes: "The do-not-sell page loaded.",
-  }),
+  {
+    ...marketingForm({
+      id: "eprodirect",
+      name: "EproDirect",
+      blurb: "Lead company. The do-not-sell form is only for California residents. Skip it if you live elsewhere, or send a letter instead.",
+      optOutUrl: "https://www.eprodirect.com/do-not-sell-my-personal-information/",
+      homeUrl: "https://www.eprodirect.com/",
+      letterRecommended: true,
+      notes: "The do-not-sell page loaded. The Privacy bot found the form is California-only (Oct 28, 2026).",
+    }),
+    residentsOnly: "California residents only",
+  },
   marketingForm({
     id: "fmadata",
     name: "FMAdata",
@@ -790,11 +819,11 @@ const MARKETING_FORMS: Broker[] = [
   marketingForm({
     id: "cadent",
     name: "Cadent",
-    blurb: "TV advertising company. Use the privacy-choices page.",
+    blurb: "TV advertising company. Start on the privacy-choices page. Cadent may email you a link that opens the actual request form, so watch your inbox.",
     optOutUrl: "https://www.cadent.com/your-privacy-choices",
     homeUrl: "https://www.cadent.com/",
     email: "privacy@cadent.tv",
-    notes: "The privacy-choices page loaded. privacy@cadent.tv is on their privacy policy.",
+    notes: "The privacy-choices page loaded. privacy@cadent.tv is on their privacy policy. On Oct 29, 2026 a Cadent verification email opened the real request form.",
   }),
   marketingForm({
     id: "oracle-advertising",
@@ -841,14 +870,17 @@ const MARKETING_LETTERS: Broker[] = [
     optOutUrl: "https://www.altairdata.com/",
     notes: "Homepage loaded. No opt-out link or privacy email was on the page we read.",
   }),
-  marketingLetter({
-    id: "anchor-computer",
-    name: "Anchor Computer",
-    blurb: "Mailing-data company. Use the privacy policy, or send the letter. An older blog link is not the opt-out.",
-    optOutUrl: "https://www.anchorcomputer.com/privacy-policy/",
-    homeUrl: "https://www.anchorcomputer.com/",
-    notes: "The privacy policy loaded. A blog post that mentioned privacy was not a request form.",
-  }),
+  {
+    ...marketingForm({
+      id: "anchor-computer",
+      name: "Anchor Computer",
+      blurb: "Mailing-data company. Use their privacy request form.",
+      optOutUrl: "https://ecom2.anchorcomputer.com/privacyrequest",
+      homeUrl: "https://www.anchorcomputer.com/",
+      notes: "Working form found Oct 25, 2026 and used by the Privacy bot. It loaded on Nov 13.",
+    }),
+    lastVerified: NOV13,
+  },
   marketingLetter({
     id: "arkeero",
     name: "Arkeero",
@@ -954,12 +986,13 @@ const MARKETING_LETTERS: Broker[] = [
   marketingLetter({
     id: "ekata",
     name: "Ekata",
-    blurb: "Identity-data company owned by Mastercard. The privacy center blocked an automated check.",
+    blurb: "Identity-data company owned by Mastercard. Their request page may ask for a Mastercard card number or an account. Do not enter a card number. Send a letter instead.",
     optOutUrl:
       "https://www.mastercard.us/en-us/vision/corp-responsibility/commitment-to-privacy/privacy/privacy-center.html",
     homeUrl: "https://ekata.com/",
     blocked: true,
-    notes: "Mastercard's privacy center returned Access Denied. ekata.com also returned 403. One card covers the US and EU rows.",
+    warning: "This request path asked for a Mastercard card number or an account. Do not enter a card number to opt out. Use the letter instead.",
+    notes: "Mastercard's privacy center returned Access Denied. ekata.com also returned 403. One card covers the US and EU rows. Card-number request seen by the Privacy bot on Oct 28, 2026.",
   }),
   marketingLetter({
     id: "ermes",
@@ -1176,11 +1209,12 @@ const MARKETING_LETTERS: Broker[] = [
   marketingLetter({
     id: "snov",
     name: "Snov.io",
-    blurb: "Work-contact tool. Use the do-not-sell page. You can also email their help address.",
+    blurb: "Work-contact tool. The do-not-sell page is only for California residents. If you live elsewhere, email their help address instead.",
     optOutUrl: "https://snov.io/do-not-sell-my-personal-information",
     homeUrl: "https://snov.io/",
     email: "help@snov.io",
-    notes: "The do-not-sell page loaded. letterRecommended is true because the page is a privacy request, not a one-field opt-out.",
+    notes: "The do-not-sell page loaded. The Privacy bot found the form is California-only (Oct 28, 2026). letterRecommended is true because the page is a privacy request, not a one-field opt-out.",
+    residentsOnly: "Form: California residents only",
   }),
   marketingLetter({
     id: "source-path",
